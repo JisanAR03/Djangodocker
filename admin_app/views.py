@@ -319,337 +319,217 @@ def list_frontend_content(request):
         return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_hero_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='hero_section',title_type='main_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='hero_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_hero_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='hero_section',title_type='sub_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='hero_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_about_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='about_section',title_type='main_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='about_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_about_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='about_section',title_type='sub_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='about_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_services_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='services_section',title_type='main_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='services_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_services_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='services_section',title_type='sub_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='services_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_blog_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='blog_section',title_type='main_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='blog_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_blog_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='blog_section',title_type='sub_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='blog_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_projects_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='projects_section',title_type='main_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='projects_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_projects_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='projects_section',title_type='sub_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='projects_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_protfolio_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(title_type='main_content',content_type='protfolio_section')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='protfolio_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_protfolio_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(title_type='sub_content',content_type='protfolio_section')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='protfolio_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_reviews_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(title_type='main_content',content_type='reviews_section')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='reviews_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_reviews_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(title_type='sub_content',content_type='reviews_section')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='reviews_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_pricing_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(title_type='main_content',content_type='pricing_section')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='pricing_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_pricing_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(title_type='sub_content',content_type='pricing_section')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='pricing_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_team_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(title_type='main_content',content_type='team_section')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='team_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_team_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(title_type='sub_content',content_type='team_section')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='team_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_contact_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(title_type='main_content',content_type='contact_section')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='contact_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_contact_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(title_type='sub_content',content_type='contact_section')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='contact_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_social_links(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='social_links',title_type='main_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='social_links',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_200_OK)
+        return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_social_links_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='social_links',title_type='sub_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='social_links',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_200_OK)
+        return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_footer_section(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='footer_section',title_type='main_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='footer_section',title_type='main_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_200_OK)
+        return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 def list_frontend_content_footer_section_sub_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
-        contents = FrontendContent.objects.filter(content_type='footer_section',title_type='sub_content')
-        serializer = FrontendContentSerializer(contents, many=True)
-        if serializer.data:
-            return Response(serializer.data)
-        else:
-            return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    contents = FrontendContent.objects.filter(content_type='footer_section',title_type='sub_content')
+    serializer = FrontendContentSerializer(contents, many=True)
+    if serializer.data:
+        return Response(serializer.data)
     else:
-        return Response({'error': 'You do not have permission to access this resource.'},status=status.HTTP_200_OK)
+        return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
