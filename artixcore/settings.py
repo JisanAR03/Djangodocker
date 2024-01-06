@@ -89,8 +89,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME':'artixcorejango',
         'USER':'root',
-        'PASSWORD':'',
-        'HOST':'localhost',
+        'PASSWORD':'artixcore',
+        'HOST':'db',
         'PORT':'3306',
     }
 }
