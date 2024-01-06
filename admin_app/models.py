@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import uuid
 
 
 class CustomUser(AbstractUser):
@@ -18,6 +19,9 @@ class CustomUser(AbstractUser):
     ]
     user_type = models.CharField(max_length=15, choices=USER_TYPES, default='general_user')
     email = models.EmailField(unique=True)
+    unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    is_verified = models.BooleanField(default=False)
+    email_verification_send_count = models.IntegerField(default=0)
     
 class FrontendContent(models.Model):
     CONTENT_TYPES = [
@@ -44,6 +48,7 @@ class FrontendContent(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE,blank=True,null=True)
     content = models.JSONField(blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     
     def __str__(self):
         return self.content_type

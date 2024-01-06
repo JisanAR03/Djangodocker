@@ -1,0 +1,6 @@
+*.pyc
+.idea
+/media
+.vscode
+*.log
+*.exe

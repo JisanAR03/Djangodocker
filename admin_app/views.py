@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from .models import FrontendContent
+from .models import FrontendContent, CustomUser
 
 
 @api_view(['POST'])
@@ -533,3 +533,30 @@ def list_frontend_content_footer_section_sub_content(request):
         return Response(serializer.data)
     else:
         return Response({'error':'No Content Found'},status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['GET'])
+def verify_email(request):
+    # this is verify email function
+    if request.GET.get('unique_id'):
+        user = get_object_or_404(CustomUser, unique_id=request.GET.get('unique_id'))
+        if user.is_verified:
+            return Response({'message': 'Your email is already verified.'})
+        else:
+            user.is_verified = True
+            user.save()
+            return Response({'message': 'Your email is verified.'})
+    else:
+        return Response({'error': 'No unique_id found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def resend_verification_email(request):
+    # this is resend verification email function
+    email = request.data.get('email')
+    user = get_object_or_404(CustomUser, email=email)
+    
+    if user.email_verification_send_count < 5:
+        serializer = UserCreateSerializer()
+        serializer.send_verification_email(user)
+        return Response({'message': 'Verification email resent.'})
+    else:
+        return Response({'error': 'Verification email resend limit reached.'}, status=status.HTTP_400_BAD_REQUEST)

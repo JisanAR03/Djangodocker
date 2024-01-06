@@ -14,6 +14,8 @@ urlpatterns = [
     re_path('user_edit/(?P<pk>\w+)/', views.user_edit, name='user_edit'), #put request
     re_path('user_delete/(?P<pk>\w+)/', views.user_delete, name='user_delete'), #delete request
     re_path('return_user_type/', views.logged_user_type, name='logged_user_type'), #get request
+    re_path('verify-email/', views.verify_email, name='verify-email'), #get request
+    re_path('resend-verification-email/', views.resend_verification_email, name='resend-verification-email'), #post request
     # frontend data manupulation from here
     re_path('content/options/', views.content_options, name='content-options'), #get request
     re_path('content/create/', views.create_frontend_content, name='create-frontend-content'), #post request
