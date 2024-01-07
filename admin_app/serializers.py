@@ -9,7 +9,7 @@ User = get_user_model()
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id','username', 'password', 'email', 'user_type']
+        fields = ['id','username', 'password', 'email', 'user_type', 'creator']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -17,7 +17,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
-            user_type=validated_data['user_type']
+            user_type=validated_data['user_type'],
+            creator=validated_data['creator']
         )
         self.send_verification_email(user)
         return user

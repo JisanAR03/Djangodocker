@@ -16,12 +16,15 @@ urlpatterns = [
     re_path('return_user_type/', views.logged_user_type, name='logged_user_type'), #get request
     re_path('verify-email/', views.verify_email, name='verify-email'), #get request
     re_path('resend-verification-email/', views.resend_verification_email, name='resend-verification-email'), #post request
+    re_path('create_not_admin_user/', views.create_not_admin_user, name='create_not_admin_user'), #post request --->new added
     # frontend data manupulation from here
     re_path('content/options/', views.content_options, name='content-options'), #get request
     re_path('content/create/', views.create_frontend_content, name='create-frontend-content'), #post request
     re_path('content/edit/(?P<pk>\w+)/', views.edit_frontend_content, name='edit-frontend-content'), #get request
     re_path('content/update/(?P<pk>\w+)/', views.update_frontend_content, name='update-frontend-content'), #put request
     re_path('content/delete/(?P<pk>\w+)/', views.delete_frontend_content, name='delete-frontend-content'), #delete request
+    re_path('content/delete_temp/(?P<pk>\w+)/', views.delete_frontend_content_temp, name='delete-temp-frontend-content'), #put request --->new added
+    re_path('content/list_temp/all/', views.list_frontend_content_temp, name='list-all-temp'), #get request --->new added
     # frontend data present from here
     re_path('content/list/hero_mains/', views.list_frontend_content_hero_section, name='list-hero-main'), #get request
     re_path('content/list/hero_subs/', views.list_frontend_content_hero_section_sub_content, name='list-hero-sub'), #get request

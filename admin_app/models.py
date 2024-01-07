@@ -7,21 +7,30 @@ class CustomUser(AbstractUser):
     USER_TYPES = [
         ('supreme_admin', 'Supreme Admin'),
         ('admin', 'Admin'),
+        ('content_writer_admin', 'Content Writer Admin'),
         ('content_writer', 'Content Writer'),
+        ('ad_manager_admin', 'Ad Manager Admin'),
         ('ad_manager', 'Ad Manager'),
+        ('accountant_admin', 'Accountant Admin'),
         ('accountant', 'Accountant'),
+        ('hr_admin', 'HR Admin'),
         ('hr', 'HR'),
+        ('developer_admin', 'Developer Admin'),
         ('developer', 'Developer'),
+        ('data_scientist_admin', 'Data Scientist Admin'),
         ('data_scientist', 'Data Scientist'),
+        ('blogger_admin', 'Blogger Admin'),
         ('blogger', 'Blogger'),
+        ('designer_admin', 'Designer Admin'),
         ('designer', 'Designer'),
         ('general_user', 'General User'),
     ]
-    user_type = models.CharField(max_length=15, choices=USER_TYPES, default='general_user')
+    user_type = models.CharField(max_length=20, choices=USER_TYPES, default='general_user')
     email = models.EmailField(unique=True)
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     is_verified = models.BooleanField(default=False)
     email_verification_send_count = models.IntegerField(default=0)
+    creator = models.ForeignKey('self', on_delete=models.CASCADE,blank=True,null=True)
     
 class FrontendContent(models.Model):
     CONTENT_TYPES = [
@@ -49,6 +58,7 @@ class FrontendContent(models.Model):
     content = models.JSONField(blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    is_deleted = models.BooleanField(default=False)
     
     def __str__(self):
         return self.content_type

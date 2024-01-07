@@ -25,6 +25,8 @@ def login(request):
 
     """
     user = get_object_or_404(get_user_model(), username=request.data['username'])
+    if not user.is_verified:
+        return Response({'error': 'Your email is not verified.'}, status=status.HTTP_400_BAD_REQUEST)
     if user.check_password(request.data['password']):
         token, _ = Token.objects.get_or_create(user=user)
         response = {
@@ -52,7 +54,7 @@ def user_type_list_supreme(request):
                   otherwise an error message.
 
     """
-    if request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'supreme_admin' and request.user.is_verified:
         user_types = [user_type[0] for user_type in get_user_model().USER_TYPES]
         response = {
             'user_types': user_types,
@@ -120,8 +122,10 @@ def create_user_supreme(request):
                   otherwise an error message.
 
     """
-    if request.user.user_type == 'supreme_admin':
-        serializer = UserCreateSerializer(data=request.data)
+    if request.user.user_type == 'supreme_admin' and request.user.is_verified:
+        data = request.data.copy()
+        data['creator'] = request.user.id
+        serializer = UserCreateSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'User Created Successfully'}, status=status.HTTP_201_CREATED)
@@ -129,7 +133,7 @@ def create_user_supreme(request):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
-
+    
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication, SessionAuthentication])
@@ -146,7 +150,7 @@ def all_user_list(request):
                   otherwise an error message.
 
     """
-    if request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'supreme_admin' and request.user.is_verified:
         users = UserCreateSerializer(get_user_model().objects.all(), many=True)
         return Response(users.data, status=status.HTTP_200_OK)
     else:
@@ -169,7 +173,7 @@ def user_edit_page(request, pk):
                   otherwise an error message.
 
     """
-    if request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'supreme_admin' and request.user.is_verified:
         user = get_object_or_404(get_user_model(), pk=pk)
         serializer = UserCreateSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -193,7 +197,7 @@ def user_edit(request, pk):
                   otherwise an error message.
 
     """
-    if request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'supreme_admin' and request.user.is_verified:
         user = get_object_or_404(get_user_model(), pk=pk)
         serializer = UserCreateSerializer(user, data=request.data)
         if serializer.is_valid():
@@ -221,7 +225,7 @@ def user_delete(request, pk):
                   otherwise an error message.
 
     """
-    if request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'supreme_admin' and request.user.is_verified:
         user = get_object_or_404(get_user_model(), pk=pk)
         user.delete()
         return Response({'message': 'User Deleted Successfully'}, status=status.HTTP_200_OK)
@@ -244,7 +248,7 @@ def logged_user_type(request):
 @permission_classes([IsAuthenticated])
 def content_options(request):
     """ return content options """
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'content_writer' or request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         content_options = [content_option[0] for content_option in FrontendContent.CONTENT_TYPES]
         title_options = [title_option[0] for title_option in FrontendContent.TITLE_TYPES]
         response = {
@@ -259,7 +263,7 @@ def content_options(request):
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def create_frontend_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'content_writer' or request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         serializer = FrontendContentSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
@@ -272,7 +276,7 @@ def create_frontend_content(request):
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def edit_frontend_content(request, pk):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'content_writer' or request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         content = get_object_or_404(FrontendContent, pk=pk)
         serializer = FrontendContentSerializer(content)
         return Response(serializer.data)
@@ -283,7 +287,7 @@ def edit_frontend_content(request, pk):
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def update_frontend_content(request, pk):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'content_writer' or request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         content = get_object_or_404(FrontendContent, pk=pk)
         serializer = FrontendContentSerializer(content, data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -297,9 +301,22 @@ def update_frontend_content(request, pk):
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_frontend_content(request, pk):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         content = get_object_or_404(FrontendContent, pk=pk)
         content.delete()
+        return Response({'message': 'Content Deleted Successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+    
+    
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_frontend_content_temp(request, pk):
+    if request.user.user_type == 'content_writer' and request.user.is_verified:
+        content = get_object_or_404(FrontendContent, pk=pk)
+        content.is_deleted = True
+        content.save()
         return Response({'message': 'Content Deleted Successfully'}, status=status.HTTP_200_OK)
     else:
         return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
@@ -308,7 +325,7 @@ def delete_frontend_content(request, pk):
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def list_frontend_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin':
+    if request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         contents = FrontendContent.objects.all()
         serializer = FrontendContentSerializer(contents, many=True)
         if serializer.data:
@@ -317,6 +334,21 @@ def list_frontend_content(request):
             return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
     else:
         return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+    
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def list_frontend_content_temp(request):
+    if request.user.user_type == 'content_writer' and request.user.is_verified:
+        contents = FrontendContent.objects.filter(is_deleted=False)
+        serializer = FrontendContentSerializer(contents, many=True)
+        if serializer.data:
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+# at here the content pulling part is start
 
 @api_view(['GET'])
 def list_frontend_content_hero_section(request):
@@ -560,3 +592,23 @@ def resend_verification_email(request):
         return Response({'message': 'Verification email resent.'})
     else:
         return Response({'error': 'Verification email resend limit reached.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def create_not_admin_user(request):
+    ALLOWED_USER_TYPES = ['content_writer_admin', 'ad_manager_admin', 'accountant_admin', 'hr_admin', 'developer_admin', 'data_scientist_admin', 'blogger_admin', 'designer_admin']
+    if request.user.user_type in ALLOWED_USER_TYPES and request.user.is_verified:
+        data = request.data.copy()
+        data['creator'] = request.user.id
+        user_type = request.user.user_type
+        data['user_type'] = user_type[:-6]
+        serializer = UserCreateSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'User Created Successfully'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
