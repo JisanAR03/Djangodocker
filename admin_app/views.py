@@ -96,7 +96,9 @@ def create_user(request):
                   otherwise an error message.
 
     """
-    serializer = UserCreateSerializer(data=request.data)
+    data = request.data.copy()
+    data['creator'] = None
+    serializer = UserCreateSerializer(data=data)
     if serializer.is_valid():
         if request.data.get('user_type') == 'supreme_admin':
             return Response({'error': 'You do not have permission to create a supreme_admin account.'}, status=status.HTTP_403_FORBIDDEN)
