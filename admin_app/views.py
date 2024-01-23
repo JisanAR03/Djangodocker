@@ -228,6 +228,8 @@ def user_delete(request, pk):
 
     """
     if request.user.user_type == 'supreme_admin' and request.user.is_verified:
+        if pk == request.user.id:
+            return Response({'error': 'You can not delete yourself.'}, status=status.HTTP_400_BAD_REQUEST)
         user = get_object_or_404(get_user_model(), pk=pk)
         user.delete()
         return Response({'message': 'User Deleted Successfully'}, status=status.HTTP_200_OK)
@@ -327,7 +329,7 @@ def delete_frontend_content_temp(request, pk):
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def list_frontend_content(request):
-    if request.user.user_type == 'content_writer' or request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
+    if request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         contents = FrontendContent.objects.all()
         serializer = FrontendContentSerializer(contents, many=True)
         if serializer.data:
@@ -354,12 +356,13 @@ def list_frontend_content_temp(request):
 
 @api_view(['GET'])
 def list_frontend_content_hero_section(request):
+    # is_deleted can't be true
     contents = FrontendContent.objects.filter(content_type='hero_section',title_type='main_content')
     serializer = FrontendContentSerializer(contents, many=True)
     if serializer.data:
         return Response(serializer.data)
     else:
-        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'No Content Found'},status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 def list_frontend_content_hero_section_sub_content(request):
