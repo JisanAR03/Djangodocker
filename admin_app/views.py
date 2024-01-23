@@ -327,7 +327,7 @@ def delete_frontend_content_temp(request, pk):
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def list_frontend_content(request):
-    if request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
+    if request.user.user_type == 'content_writer' or request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         contents = FrontendContent.objects.all()
         serializer = FrontendContentSerializer(contents, many=True)
         if serializer.data:
@@ -585,15 +585,18 @@ def verify_email(request):
 @api_view(['POST'])
 def resend_verification_email(request):
     # this is resend verification email function
-    email = request.data.get('email')
-    user = get_object_or_404(CustomUser, email=email)
-    
-    if user.email_verification_send_count < 5:
-        serializer = UserCreateSerializer()
-        serializer.send_verification_email(user)
-        return Response({'message': 'Verification email resent.'})
-    else:
-        return Response({'error': 'Verification email resend limit reached.'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        email = request.data.get('email')
+        user = get_object_or_404(CustomUser, email=email)
+        
+        if user.email_verification_send_count < 5:
+            serializer = UserCreateSerializer()
+            serializer.send_verification_email(user)
+            return Response({'message': 'Verification email resent.'})
+        else:
+            return Response({'error': 'Verification email resend limit reached.'}, status=status.HTTP_400_BAD_REQUEST)
+    except:
+        return Response({'error': 'No email found.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
