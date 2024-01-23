@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     re_path('login/', views.login, name='login'), #post request
     re_path('user_type/', views.user_type_list, name='user_type'), #get request
+    re_path('change_password/', views.change_password, name='change_password'), #put request --->new added
     re_path('user_type_supreme/', views.user_type_list_supreme, name='user_type_supreme'), #get request
     re_path('create_user/', views.create_user, name='create_user'), #post request
     re_path('create_user_supreme/', views.create_user_supreme, name='create_user_supreme'), #post request

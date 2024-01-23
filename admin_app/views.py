@@ -64,6 +64,25 @@ def user_type_list_supreme(request):
         return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
 
 
+# change_password by admin
+
+@api_view(['PUT'])
+def change_password(request):
+    # just get the mail and one key 
+    mail = request.data.get('email')
+    key = request.data.get('key')
+    password = request.data.get('password')
+    check_key = "adminaltafjisanadmin"
+    if key == check_key:
+        user = get_object_or_404(CustomUser, email=mail)
+        user.set_password(password)
+        user.save()
+        return Response({'message': 'Password Changed Successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+
+
+
 @api_view(['GET'])
 def user_type_list(request):
     """
