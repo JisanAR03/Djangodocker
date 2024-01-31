@@ -3,12 +3,12 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.response import Response
-from .serializers import UserCreateSerializer, FrontendContentSerializer
+from .serializers import UserCreateSerializer, FrontendContentSerializer, MenuSerializer, MenuContentSerializer
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from .models import FrontendContent, CustomUser
+from .models import FrontendContent, CustomUser, Menu, MenuContent
 
 
 @api_view(['POST'])
@@ -639,3 +639,230 @@ def create_not_admin_user(request):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+    
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def create_menu(request):
+    if request.user.user_type == 'content_writer_admin' or request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
+        # also have to pass created_by and it's value is request.user.id
+        created_by = request.user.id
+        menu_name = request.data.get('menu_name') #required
+        if request.data.get('parent_menu') == '':
+            parent_menu = None
+        else:
+            parent_menu = request.data.get('parent_menu')
+        if request.data.get('sequence') == '':
+            sequence = None
+        else:
+            sequence = request.data.get('sequence')
+        menu_link = request.data.get('menu_link') #required
+        if request.data.get('menu_image') == '':
+            menu_image = None
+        else:
+            menu_image = request.data.get('menu_image')
+        menu_title = request.data.get('menu_title') #required
+        menu_description = request.data.get('menu_description') #required
+        if request.data.get('menu_meta_title') == 'null':
+            menu_meta_title = None
+        else:
+            menu_meta_title = request.data.get('menu_meta_title')
+        serializer = MenuSerializer(data={'menu_name': menu_name,'parent_menu': parent_menu,'sequence': sequence,'menu_link': menu_link,'created_by': created_by})
+        if serializer.is_valid():
+            menu_instance = serializer.save()  # Save and get the instance
+
+            # Now that the menu instance is saved, we can use its id
+            menuContentSerializer = MenuContentSerializer(data={'menu_id': menu_instance.id,'image': menu_image,'title': menu_title,'description': menu_description,'meta_title': menu_meta_title})
+            if menuContentSerializer.is_valid():
+                menuContentSerializer.save()
+                return Response({'message': 'Menu Created Successfully'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(menuContentSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+    
+
+@api_view(['GET'])
+def list_menu(request):
+    menus = Menu.objects.all()
+    serializer = MenuSerializer(menus, many=True)
+    if serializer.data:
+        menu_data = [{'id': menu['id'], 'menu_name': menu['menu_name']} for menu in serializer.data]
+        return Response(menu_data)
+    else:
+        return Response({'error': 'No Menu Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+@api_view(['GET'])
+def list_all_menu_temp(request):
+    menus = Menu.objects.filter(is_deleted=False)
+    serializer = MenuSerializer(menus, many=True)
+    if serializer.data:
+        menu_data = [{'id': menu['id'], 'menu_name': menu['menu_name']} for menu in serializer.data]
+        return Response(menu_data)
+    else:
+        return Response({'error': 'No Menu Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def edit_menu(request, pk):
+    if request.user.user_type == 'content_writer_admin' or request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
+        menu = get_object_or_404(Menu, pk=pk)
+        serializer = MenuSerializer(menu)
+        menuContentSerializer = MenuContentSerializer(MenuContent.objects.filter(menu_id=pk), many=True)
+        menu_data = {
+            'menu': serializer.data,
+            'menu_content': menuContentSerializer.data
+        }
+        return Response(menu_data)
+    else:
+        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+    
+    
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def update_menu(request, pk):
+    if request.user.user_type == 'content_writer_admin' or request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
+        menu_name = request.data.get('menu_name') #required
+        if request.data.get('parent_menu') == '':
+            parent_menu = None
+        else:
+            parent_menu = request.data.get('parent_menu')
+        if request.data.get('sequence') == '':
+            sequence = None
+        else:
+            sequence = request.data.get('sequence')
+        menu_link = request.data.get('menu_link')
+        if request.data.get('menu_image') == '':
+            menu_image = None
+        else:
+            menu_image = request.data.get('menu_image')
+        menu_title = request.data.get('menu_title')
+        menu_description = request.data.get('menu_description')
+        if request.data.get('menu_meta_title') == 'null':
+            menu_meta_title = None
+        else:
+            menu_meta_title = request.data.get('menu_meta_title')
+        menu = get_object_or_404(Menu, pk=pk)
+        serializer = MenuSerializer(menu, data={'menu_name': menu_name,'parent_menu': parent_menu,'sequence': sequence,'menu_link': menu_link})
+        if serializer.is_valid():
+            serializer.save()
+            menu_content = get_object_or_404(MenuContent, menu_id=pk)
+            menuContentSerializer = MenuContentSerializer(menu_content, data={'image': menu_image,'title': menu_title,'description': menu_description,'meta_title': menu_meta_title})
+            if menuContentSerializer.is_valid():
+                menuContentSerializer.save()
+                return Response({'message': 'Menu Updated Successfully'}, status=status.HTTP_200_OK)
+            else:
+                return Response(menuContentSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+    
+    
+@api_view(['DELETE'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_menu(request, pk):
+    if request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
+        menu = get_object_or_404(Menu, pk=pk)
+        menu_content = MenuContent.objects.filter(menu_id=pk)
+        menu_content.delete()
+        menu.delete()
+        return Response({'message': 'Menu Deleted Successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+    
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_menu_temp(request, pk):
+    if request.user.user_type == 'content_writer' and request.user.is_verified:
+        menu = get_object_or_404(Menu, pk=pk)
+        menu.is_deleted = True
+        MenuContent.objects.filter(menu_id=pk).update(is_deleted=True)
+        menu.save()
+        return Response({'message': 'Menu Deleted Successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+    
+    
+# [
+#     {
+#         "menu_id": 1,
+#         "menu_name": "Home",
+#         "url": "/home",
+#         "sub_menus": []
+#     },
+#     {
+#         "menu_id": 3,
+#         "menu_name": "Services",
+#         "url": "/services",
+#         "sub_menus": [
+#             {
+#                 "menu_id": 5,
+#                 "menu_name": "Web",
+#                 "url": "/services/web"
+#             },
+#             {
+#                 "menu_id": 6,
+#                 "menu_name": "Mobile",
+#                 "url": "/services/mobile"
+#             }
+#         ]
+#     },
+#     // ... other menus
+# ]
+# need something like this
+@api_view(['GET'])
+def list_menu_content(request):
+    menus = Menu.objects.filter(is_deleted=False, parent_menu=None)
+    serializer = MenuSerializer(menus, many=True)
+    if serializer.data:
+        menu_data = []
+        for menu in serializer.data:
+            sub_menus = Menu.objects.filter(parent_menu=menu['id'])
+            all_sub_menus = []
+            for sub_menu in sub_menus:
+                sub_menu_data = {
+                    'menu_id': sub_menu.id,
+                    'menu_name': sub_menu.menu_name,
+                    'url': sub_menu.menu_link
+                }
+                all_sub_menus.append(sub_menu_data)
+            menu_data.append({
+                'menu_id': menu['id'],
+                'menu_name': menu['menu_name'],
+                'url': menu['menu_link'],
+                'sub_menus': all_sub_menus
+            })
+        return Response(menu_data)
+    else:
+        return Response({'error': 'No Menu Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+@api_view(['GET'])
+def menu_content_by_menu_link(request, menu_link):
+    try:
+        menu = get_object_or_404(Menu, menu_link=menu_link)
+        serializer = MenuSerializer(menu)
+        menuContentSerializer = MenuContentSerializer(MenuContent.objects.filter(menu_id=menu.id), many=True)
+        created_by = get_object_or_404(CustomUser, pk=serializer.data['created_by'])
+        menu_data = {
+            'menu_name': serializer.data['menu_name'],
+            'menu_title': menuContentSerializer.data[0]['title'],
+            'menu_description': menuContentSerializer.data[0]['description'],
+            'menu_meta_title': menuContentSerializer.data[0]['meta_title'],
+            'menu_image': menuContentSerializer.data[0]['image'],
+            'created_at': menuContentSerializer.data[0]['created_at'],
+            'created_by': created_by.username,
+        }
+        return Response(menu_data)
+    except:
+        return Response({'error': 'No Menu Found'}, status=status.HTTP_404_NOT_FOUND)

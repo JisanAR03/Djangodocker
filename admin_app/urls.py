@@ -52,6 +52,22 @@ urlpatterns = [
     re_path('content/list/footer_mains/', views.list_frontend_content_footer_section, name='list-footer-main'), #get request
     re_path('content/list/footer_subs/', views.list_frontend_content_footer_section_sub_content, name='list-footer-sub'), #get request
     re_path('content/list/all/', views.list_frontend_content, name='list-all'), #get request
+    
+    
+    # menu part from here
+    re_path('menu/create/', views.create_menu, name='create-menu'), #post request  the field name is required is : menu_name, parent_menu, sequence, menu_link, menu_image, menu_title, menu_meta_title, menu_description
+    re_path('menu/list/all/', views.list_menu, name='list-menu'), #get request   the field return menu_name and id and use id as value and menu_name as label
+    re_path('menu/list/all_temp/', views.list_all_menu_temp, name='list-all-menu-temp'), #get request
+    re_path('menu/edit/(?P<pk>\w+)/', views.edit_menu, name='edit-menu'), #get request
+    re_path('menu/update/(?P<pk>\w+)/', views.update_menu, name='update-menu'), #put request
+    re_path('menu/delete/(?P<pk>\w+)/', views.delete_menu, name='delete-menu'), #delete request
+    re_path('menu/delete_temp/(?P<pk>\w+)/', views.delete_menu_temp, name='delete-menu-temp'), #put request 
+    
+    # now start menu content part for frontend
+    re_path('menu/content/list_frontend/', views.list_menu_content, name='list-menu-content'), #get request
+    # show menu content by menu_link value
+    re_path('menu/menu_content/(?P<menu_link>\w+)/', views.menu_content_by_menu_link, name='menu-content-by-menu-link'), #get request
+    
 ]
 
 # if settings.DEBUG:

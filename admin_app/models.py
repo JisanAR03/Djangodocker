@@ -62,3 +62,29 @@ class FrontendContent(models.Model):
     
     def __str__(self):
         return self.content_type
+    
+class Menu(models.Model):
+    menu_name = models.CharField(max_length=100)
+    parent_menu = models.ForeignKey('self', on_delete=models.CASCADE,blank=True,null=True)
+    sequence = models.IntegerField(blank=True,null=True)
+    menu_link = models.CharField(max_length=100,unique=True)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE,blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    is_deleted = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.menu_name
+    
+class MenuContent(models.Model):
+    menu_id = models.ForeignKey(Menu, on_delete=models.CASCADE,blank=True,null=True,unique=True)
+    image = models.ImageField(upload_to='menu_content_images/',blank=True,null=True)
+    title = models.CharField(max_length=100)
+    meta_title = models.CharField(max_length=100,blank=True,null=True)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    is_deleted = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.title
