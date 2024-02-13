@@ -67,7 +67,7 @@ class Menu(models.Model):
     menu_name = models.CharField(max_length=100)
     parent_menu = models.ForeignKey('self', on_delete=models.CASCADE,blank=True,null=True)
     sequence = models.IntegerField(blank=True,null=True)
-    menu_link = models.CharField(max_length=100,unique=True)
+    menu_link = models.CharField(max_length=100,unique=True,blank=True,null=True)
     created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE,blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

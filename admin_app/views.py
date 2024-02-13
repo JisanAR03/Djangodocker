@@ -773,6 +773,11 @@ def delete_menu(request, pk):
     if request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         menu = get_object_or_404(Menu, pk=pk)
         menu_content = MenuContent.objects.filter(menu_id=pk)
+        # delete image too from media this code added for delete image
+        menu_image = menu_content[0].image
+        if menu_image:
+            if os.path.isfile(settings.MEDIA_ROOT + '/' + menu_image):
+                os.remove(settings.MEDIA_ROOT + '/' + menu_image)
         menu_content.delete()
         menu.delete()
         return Response({'message': 'Menu Deleted Successfully'}, status=status.HTTP_200_OK)
@@ -792,60 +797,38 @@ def delete_menu_temp(request, pk):
     else:
         return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
     
-    
-# [
-#     {
-#         "menu_id": 1,
-#         "menu_name": "Home",
-#         "url": "/home",
-#         "sub_menus": []
-#     },
-#     {
-#         "menu_id": 3,
-#         "menu_name": "Services",
-#         "url": "/services",
-#         "sub_menus": [
-#             {
-#                 "menu_id": 5,
-#                 "menu_name": "Web",
-#                 "url": "/services/web"
-#             },
-#             {
-#                 "menu_id": 6,
-#                 "menu_name": "Mobile",
-#                 "url": "/services/mobile"
-#             }
-#         ]
-#     },
-#     // ... other menus
-# ]
-# need something like this
+
+
+def get_nested_menus(menu_id):
+    sub_menus = Menu.objects.filter(parent_menu=menu_id, is_deleted=False)
+    nested_menus = []
+    for sub_menu in sub_menus:
+        sub_menu_data = {
+            'menu_id': sub_menu.id,
+            'label': sub_menu.menu_name,
+            'url': sub_menu.menu_link,
+            'anothersubmenu': get_nested_menus(sub_menu.id)  # Recursive call
+        }
+        nested_menus.append(sub_menu_data)
+    return nested_menus
+
 @api_view(['GET'])
 def list_menu_content(request):
-    menus = Menu.objects.filter(is_deleted=False, parent_menu=None)
-    serializer = MenuSerializer(menus, many=True)
-    if serializer.data:
-        menu_data = []
-        for menu in serializer.data:
-            sub_menus = Menu.objects.filter(parent_menu=menu['id'])
-            all_sub_menus = []
-            for sub_menu in sub_menus:
-                sub_menu_data = {
-                    'menu_id': sub_menu.id,
-                    'menu_name': sub_menu.menu_name,
-                    'url': sub_menu.menu_link
-                }
-                all_sub_menus.append(sub_menu_data)
-            menu_data.append({
-                'menu_id': menu['id'],
-                'menu_name': menu['menu_name'],
-                'url': menu['menu_link'],
-                'sub_menus': all_sub_menus
-            })
+    root_menus = Menu.objects.filter(is_deleted=False, parent_menu=None).order_by('sequence')
+    menu_data = []
+    
+    for menu in root_menus:
+        menu_data.append({
+            'menu_id': menu.id,
+            'label': menu.menu_name,
+            'url': menu.menu_link,
+            'submenu': get_nested_menus(menu.id)  # Use the recursive function
+        })
+    
+    if menu_data:
         return Response(menu_data)
     else:
         return Response({'error': 'No Menu Found'}, status=status.HTTP_404_NOT_FOUND)
-    
     
 @api_view(['GET'])
 def menu_content_by_menu_link(request, menu_link):
