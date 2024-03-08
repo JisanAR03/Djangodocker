@@ -9,6 +9,11 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from .models import FrontendContent, CustomUser, Menu, MenuContent
+import logging
+import os
+from django.conf import settings
+
+logger = logging.getLogger()
 
 
 @api_view(['POST'])
@@ -197,7 +202,11 @@ def user_edit_page(request, pk):
     if request.user.user_type == 'supreme_admin' and request.user.is_verified:
         user = get_object_or_404(get_user_model(), pk=pk)
         serializer = UserCreateSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response_data = serializer.data.copy()  # Make a mutable copy of the response data
+        if response_data['creator']:
+            user_creator = get_object_or_404(get_user_model(), pk=response_data['creator'])
+            response_data['creator'] = user_creator.username
+        return Response(response_data, status=status.HTTP_200_OK)
     else:
         return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -218,8 +227,11 @@ def user_edit(request, pk):
                   otherwise an error message.
 
     """
+    print(request.user.user_type)
+    print(request.user.is_verified)
     if request.user.user_type == 'supreme_admin' and request.user.is_verified:
         user = get_object_or_404(get_user_model(), pk=pk)
+        print(request.data)
         serializer = UserCreateSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -310,6 +322,10 @@ def edit_frontend_content(request, pk):
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def update_frontend_content(request, pk):
+    print("*"*100)
+    print(request.user.user_type)
+    print(request.user.is_verified)
+    print("*"*100)
     if request.user.user_type == 'content_writer' or request.user.user_type == 'content_writer_admin' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         content = get_object_or_404(FrontendContent, pk=pk)
         serializer = FrontendContentSerializer(content, data=request.data, context={'request': request})
@@ -610,7 +626,6 @@ def resend_verification_email(request):
     try:
         email = request.data.get('email')
         user = get_object_or_404(CustomUser, email=email)
-        
         if user.email_verification_send_count < 5:
             serializer = UserCreateSerializer()
             serializer.send_verification_email(user)
@@ -657,14 +672,23 @@ def create_menu(request):
             sequence = None
         else:
             sequence = request.data.get('sequence')
-        menu_link = request.data.get('menu_link') #required
+        if request.data.get('menu_link') == '':
+            menu_link = None
+        else:
+            menu_link = request.data.get('menu_link')
         if request.data.get('menu_image') == '':
             menu_image = None
         else:
             menu_image = request.data.get('menu_image')
-        menu_title = request.data.get('menu_title') #required
-        menu_description = request.data.get('menu_description') #required
-        if request.data.get('menu_meta_title') == 'null':
+        if request.data.get('menu_title') == '':
+            menu_title = None
+        else:
+            menu_title = request.data.get('menu_title')
+        if request.data.get('menu_description') == '':
+            menu_description = None
+        else:
+            menu_description = request.data.get('menu_description')
+        if request.data.get('menu_meta_title') == '':
             menu_meta_title = None
         else:
             menu_meta_title = request.data.get('menu_meta_title')
@@ -687,7 +711,8 @@ def create_menu(request):
 
 @api_view(['GET'])
 def list_menu(request):
-    menus = Menu.objects.all()
+    # this is for list all menu and not which is_deleted is true
+    menus = Menu.objects.filter(is_deleted=False)
     serializer = MenuSerializer(menus, many=True)
     if serializer.data:
         menu_data = [{'id': menu['id'], 'menu_name': menu['menu_name']} for menu in serializer.data]
@@ -698,7 +723,7 @@ def list_menu(request):
     
 @api_view(['GET'])
 def list_all_menu_temp(request):
-    menus = Menu.objects.filter(is_deleted=False)
+    menus = Menu.objects.filter(is_deleted=True)
     serializer = MenuSerializer(menus, many=True)
     if serializer.data:
         menu_data = [{'id': menu['id'], 'menu_name': menu['menu_name']} for menu in serializer.data]
@@ -728,9 +753,12 @@ def edit_menu(request, pk):
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def update_menu(request, pk):
+    print(request.data)
+    logger.info(request.user.user_type)
     if request.user.user_type == 'content_writer_admin' or request.user.user_type == 'content_writer' or request.user.user_type == 'supreme_admin' and request.user.is_verified:
         menu_name = request.data.get('menu_name') #required
-        if request.data.get('parent_menu') == '':
+        logger.info(request.data.get('parent_menu'))
+        if request.data.get('parent_menu') == '' or request.data.get('parent_menu') == None:
             parent_menu = None
         else:
             parent_menu = request.data.get('parent_menu')
@@ -738,9 +766,19 @@ def update_menu(request, pk):
             sequence = None
         else:
             sequence = request.data.get('sequence')
-        menu_link = request.data.get('menu_link')
-        if request.data.get('menu_image') == '':
-            menu_image = None
+        if request.data.get('menu_link') == '' or request.data.get('menu_link') == None:
+            menu_link = None
+        else:
+            menu_link = request.data.get('menu_link')
+        if request.data.get('menu_image') == '' or request.data.get('menu_image') == None:
+            menu_content_image = MenuContent.objects.filter(menu_id=pk)
+            if menu_content_image:
+                if menu_content_image[0].image:
+                    menu_image = menu_content_image[0].image
+                else:
+                    menu_image = None
+            else:
+                menu_image = None
         else:
             menu_image = request.data.get('menu_image')
         menu_title = request.data.get('menu_title')
@@ -754,15 +792,26 @@ def update_menu(request, pk):
         if serializer.is_valid():
             serializer.save()
             menu_content = get_object_or_404(MenuContent, menu_id=pk)
-            menuContentSerializer = MenuContentSerializer(menu_content, data={'image': menu_image,'title': menu_title,'description': menu_description,'meta_title': menu_meta_title})
-            if menuContentSerializer.is_valid():
-                menuContentSerializer.save()
-                return Response({'message': 'Menu Updated Successfully'}, status=status.HTTP_200_OK)
+            # if there is not any menu_content then create new one
+            if not menu_content:
+                menuContentSerializer = MenuContentSerializer(data={'menu_id': pk,'image': menu_image,'title': menu_title,'description': menu_description,'meta_title': menu_meta_title})
+                if menuContentSerializer.is_valid():
+                    menuContentSerializer.save()
+                    return Response({'message': 'Menu Updated Successfully'}, status=status.HTTP_200_OK)
+                else:
+                    return Response(menuContentSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response(menuContentSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                menu_content.image = menu_image
+                menu_content.title = menu_title
+                menu_content.description = menu_description
+                menu_content.meta_title = menu_meta_title
+                menu_content.save()
+                return Response({'message': 'Menu Updated Successfully'}, status=status.HTTP_200_OK)
         else:
+            logger.info(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     else:
+        logger.info("You do not have permission to access this resource.")
         return Response({'error': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
     
     
@@ -776,8 +825,9 @@ def delete_menu(request, pk):
         # delete image too from media this code added for delete image
         menu_image = menu_content[0].image
         if menu_image:
-            if os.path.isfile(settings.MEDIA_ROOT + '/' + menu_image):
-                os.remove(settings.MEDIA_ROOT + '/' + menu_image)
+            image_path = os.path.join(settings.MEDIA_ROOT, str(menu_image))
+            if os.path.isfile(image_path):
+                os.remove(image_path)
         menu_content.delete()
         menu.delete()
         return Response({'message': 'Menu Deleted Successfully'}, status=status.HTTP_200_OK)
@@ -836,7 +886,6 @@ def menu_content_by_menu_link(request, menu_link):
         menu = get_object_or_404(Menu, menu_link=menu_link)
         serializer = MenuSerializer(menu)
         menuContentSerializer = MenuContentSerializer(MenuContent.objects.filter(menu_id=menu.id), many=True)
-        created_by = get_object_or_404(CustomUser, pk=serializer.data['created_by'])
         menu_data = {
             'menu_name': serializer.data['menu_name'],
             'menu_title': menuContentSerializer.data[0]['title'],
@@ -844,8 +893,213 @@ def menu_content_by_menu_link(request, menu_link):
             'menu_meta_title': menuContentSerializer.data[0]['meta_title'],
             'menu_image': menuContentSerializer.data[0]['image'],
             'created_at': menuContentSerializer.data[0]['created_at'],
-            'created_by': created_by.username,
         }
         return Response(menu_data)
     except:
         return Response({'error': 'No Menu Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+    
+    
+def index(request):
+    return render(request, 'index.html')
+
+@api_view(['GET'])
+def hero_part(request):
+    # return randor title , meta_title and a url as json for a api
+    title = "Lorem Ipsum is simply"
+    meta_title = "standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make standard dumm"
+    url = "https://www.youtube.com/watch?v=t0Q2otsqC4I"
+    
+    hero_data = {
+        'title' : title,
+        'meta_title' : meta_title,
+        'video_url' : url
+    }
+    
+    return Response(hero_data)
+
+topics = [
+        {
+            'id': 1,
+            'title': 'Lorem Ipsum is simply',
+            'meta_title': 'It is a long established fact that a reader will be distracted by the readable content ',
+            'description': 'It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).',
+            'image': 'https://via.placeholder.com/300',
+        },
+        {
+            'id': 2,
+            'title': 'It is a long establishedt',
+            'meta_title': 'It is a long established fact that a reader will be distracted by the readable content ',
+            'description': 'It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).',
+            'image': 'https://via.placeholder.com/300',
+        },
+        {
+            'id': 3,
+            'title': 'It is a long establishedt',
+            'meta_title': 'It is a long established fact that a reader will be distracted by the readable content ',
+            'description': 'It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).',
+            'image': 'https://via.placeholder.com/300',
+        }]
+
+@api_view(['GET'])
+def all_topics(request):
+    # return latest topics as json for a api
+    topics_list = [
+        {'id': topic['id'], 'title': topic['title'], 'meta_title': topic['meta_title'], 'image': topic['image']}
+        for topic in topics
+    ]
+    return Response(topics_list)
+
+@api_view(['GET'])
+def topic_details(request, topic_id):
+    # return topic details as json for a api
+    topic = next((topic for topic in topics if topic['id'] == topic_id), None)
+    if topic:
+        return Response(topic)
+    else:
+        return Response({'error': 'No Topic Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+Employee = [
+    {
+        'id': 1,
+        'name': 'John Doe',
+        'position': 'Software Developer',
+        'linkdin': 'https://www.linkedin.com/in/johndoe',
+        'image': 'https://via.placeholder.com/300',
+        'created_at': '2021-07-15T09:00:00Z',
+    },
+    {
+        'id': 2,
+        'name': 'Jane Doe',
+        'position': 'Software Developer',
+        'linkdin': 'https://www.linkedin.com/in/janedoe',
+        'image': 'https://via.placeholder.com/300',
+        'created_at': '2021-07-15T09:00:00Z',
+    },
+    {
+        'id': 3,
+        'name': 'Tom Doe',
+        'position': 'Software Developer',
+        'linkdin': 'https://www.linkedin.com/in/tomdoe',
+        'image': 'https://via.placeholder.com/300',
+        'created_at': '2021-07-15T09:00:00Z',
+    },
+    {
+        'id':4,
+        'name': 'Jerry Doe',
+        'position': 'Software Developer',
+        'linkdin': 'https://www.linkedin.com/in/jerrydoe',
+        'image': 'https://via.placeholder.com/300',
+        'created_at': '2021-07-15T09:00:00Z',
+    },
+    {
+        'id': 5,
+        'name': 'Jerry Doe',
+        'position': 'Software Developer',
+        'linkdin': 'https://www.linkedin.com/in/jerrydoe',
+        'image': 'https://via.placeholder.com/300',
+        'created_at': '2021-07-15T09:00:00Z',
+    }
+]
+
+@api_view(['GET'])
+def latest_employees(request):
+    # return latest employees as json for a api and first 4 employees
+    latest_employees = Employee[:4]
+
+    # Convert the employees to a list of dictionaries
+    employees_list = [
+        {
+            'id': employee['id'],
+            'name': employee['name'],
+            'position': employee['position'],
+            'linkedin': employee['linkdin'],
+            'image': employee['image'],
+        }
+        for employee in latest_employees
+    ]
+    return Response(employees_list)
+
+@api_view(['GET'])
+def all_employees(request):
+    # return all employees as json for a api
+    employees_list = [
+        {
+            'id': employee['id'],
+            'name': employee['name'],
+            'position': employee['position'],
+            'linkedin': employee['linkdin'],
+            'image': employee['image'],
+        }
+        for employee in Employee
+    ]
+    return Response(employees_list)
+
+
+Blogs = [
+    # each blog should have image, title meta_tile, description, author, created_at
+    {
+        'id': 1,
+        'title': 'Lorem Ipsum is simply',
+        'meta_title': 'It is a long established fact that a reader will be distracted by the readable content ',
+        'description': 'It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).',
+        'image': 'https://via.placeholder.com/600',
+        'author': 'John Doe',
+        'created_at': '2021-07-15T09:00:00Z',
+    },
+    {
+        'id': 2,
+        'title': 'Another Blog',
+        'meta_title': 'This is another blog',
+        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl at lacinia tincidunt, metus nunc tincidunt urna, nec tincidunt justo nunc id nunc. Sed auctor, nunc id consequat aliquam, nunc nunc tincidunt urna, nec tincidunt justo nunc id nunc.',
+        'image': 'https://via.placeholder.com/600',
+        'author': 'Jane Doe',
+        'created_at': '2021-07-16T10:00:00Z',
+    },
+    {
+        'id': 3,
+        'title': 'Third Blog',
+        'meta_title': 'This is the third blog',
+        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl at lacinia tincidunt, metus nunc tincidunt urna, nec tincidunt justo nunc id nunc. Sed auctor, nunc id consequat aliquam, nunc nunc tincidunt urna, nec tincidunt justo nunc id nunc.',
+        'image': 'https://via.placeholder.com/600',
+        'author': 'Tom Doe',
+        'created_at': '2021-07-17T11:00:00Z',
+    },
+    {
+        'id': 4,
+        'title': 'Fourth Blog',
+        'meta_title': 'This is the fourth blog',
+        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl at lacinia tincidunt, metus nunc tincidunt urna, nec tincidunt justo nunc id nunc. Sed auctor, nunc id consequat aliquam, nunc nunc tincidunt urna, nec tincidunt justo nunc id nunc.',
+        'image': 'https://via.placeholder.com/600',
+        'author': 'Jerry Doe',
+        'created_at': '2021-07-18T12:00:00Z',
+    }
+]
+
+@api_view(['GET'])
+def all_blogs(request):
+    # return latest blogs as json for a api
+    blogs_list = [
+        {'id': blog['id'], 'title': blog['title'], 'meta_title': blog['meta_title'], 'image': blog['image']}
+        for blog in Blogs
+    ]
+    return Response(blogs_list)
+
+@api_view(['GET'])
+def blog_details(request, blog_id):
+    # return blog details as json for a api
+    blog = next((blog for blog in Blogs if blog['id'] == blog_id), None)
+    if blog:
+        return Response(blog)
+    else:
+        return Response({'error': 'No Blog Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['GET'])
+def privacy_policy(request):
+    # return privacy policy as json for a api
+    privacy_policy = {
+        'title': 'Privacy Policy',
+        'content': 'It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).It is a long established fact that a reader will be distracted by the readable content It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).It is a long established fact that a reader will be distracted by the readable content It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).It is a long established fact that a reader will be distracted by the readable contentIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).It is a long established fact that a reader will be distracted by the readable content',
+    }
+    return Response(privacy_policy)

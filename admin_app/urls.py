@@ -1,9 +1,24 @@
-from django.urls import re_path
+from django.urls import re_path, path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path('', views.index, name='index'),
+    path('api/heroPart/', views.hero_part, name="hero_part"),
+    path('api/topics/', views.all_topics, name='all_topics'),
+    path('api/topics/<int:topic_id>/', views.topic_details, name='topic_details'),
+    path('api/latestEmployees/', views.latest_employees, name='all_employees'),
+    path('api/employees/', views.all_employees, name='all_employees'),
+    path('api/blogs/', views.all_blogs, name='all_blogs'),
+    path('api/blogs/<int:blog_id>/', views.blog_details, name='blog_details'),
+    path('api/privacy_policy/', views.privacy_policy, name='privacy_policy'),
+    path('api/menu/', views.list_menu_content, name='list-menu-content'),
+    
+    
+    
+    
+    
     re_path('login/', views.login, name='login'), #post request
     re_path('user_type/', views.user_type_list, name='user_type'), #get request
     re_path('change_password/', views.change_password, name='change_password'), #put request --->new added
@@ -68,7 +83,10 @@ urlpatterns = [
     # show menu content by menu_link value
     re_path('menu/menu_content/(?P<menu_link>\w+)/', views.menu_content_by_menu_link, name='menu-content-by-menu-link'), #get request
     
+    
+    # re_path('', views.index, name='index'),
+    
 ]
 
-# if settings.DEBUG:
-#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

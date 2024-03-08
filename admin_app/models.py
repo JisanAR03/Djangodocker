@@ -81,7 +81,7 @@ class MenuContent(models.Model):
     image = models.ImageField(upload_to='menu_content_images/',blank=True,null=True)
     title = models.CharField(max_length=100)
     meta_title = models.CharField(max_length=100,blank=True,null=True)
-    description = models.TextField()
+    description = models.JSONField(blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     is_deleted = models.BooleanField(default=False)
