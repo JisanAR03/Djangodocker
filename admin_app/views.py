@@ -923,6 +923,7 @@ topics = [
         {
             'id': 1,
             'title': 'Lorem Ipsum is simply',
+            'menu_link': 'lorem-ipsum-is-simply',
             'meta_title': 'It is a long established fact that a reader will be distracted by the readable content ',
             'description': 'It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).',
             'image': 'https://via.placeholder.com/300',
@@ -930,6 +931,7 @@ topics = [
         {
             'id': 2,
             'title': 'It is a long establishedt',
+            'menu_link': 'it-is-a-long-establishedt
             'meta_title': 'It is a long established fact that a reader will be distracted by the readable content ',
             'description': 'It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).',
             'image': 'https://via.placeholder.com/300',
@@ -937,6 +939,7 @@ topics = [
         {
             'id': 3,
             'title': 'It is a long establishedt',
+            'menu_link': 'it-is-a-long-establishedt
             'meta_title': 'It is a long established fact that a reader will be distracted by the readable content ',
             'description': 'It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).',
             'image': 'https://via.placeholder.com/300',
@@ -946,15 +949,16 @@ topics = [
 def all_topics(request):
     # return latest topics as json for a api
     topics_list = [
-        {'id': topic['id'], 'title': topic['title'], 'meta_title': topic['meta_title'], 'image': topic['image']}
+        {'id': topic['id'], 'title': topic['title'], 'meta_title': topic['meta_title'], 'image': topic['image'], 'menu_link': topic['menu_link']}
         for topic in topics
     ]
     return Response(topics_list)
 
 @api_view(['GET'])
-def topic_details(request, topic_id):
+# get data by menu_link
+def topic_details(request, menu_link):
     # return topic details as json for a api
-    topic = next((topic for topic in topics if topic['id'] == topic_id), None)
+    topic = next((topic for topic in topics if topic['menu_link'] == menu_link), None)
     if topic:
         return Response(topic)
     else:

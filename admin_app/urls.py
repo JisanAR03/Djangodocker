@@ -7,8 +7,9 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('api/heroPart/', views.hero_part, name="hero_part"),
     path('api/topics/', views.all_topics, name='all_topics'),
-    path('api/topics/<int:topic_id>/', views.topic_details, name='topic_details'),
-    path('api/latestEmployees/', views.latest_employees, name='all_employees'),
+    # teh topic topic get data with wenu_link
+    path('api/topics/<str:menu_link>/', views.topic_by_menu_link, name='topic_by_menu_link'),
+    path('api/latestEmployees/', views.latest_employees, name='latest_employees'),
     path('api/employees/', views.all_employees, name='all_employees'),
     path('api/blogs/', views.all_blogs, name='all_blogs'),
     path('api/blogs/<int:blog_id>/', views.blog_details, name='blog_details'),
