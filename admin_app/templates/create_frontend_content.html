@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Select content type - Artixcore{% endblock %}
+
+{% block content %}
+<div class="grid-margin stretch-card">
+    <div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Add New Content</h4>
+        <form class="forms-sample" action="{% url 'createFrontendContent' %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+        <label for="Roleselector">Content Type</label>
+        <select class="form-control" name="content_type" id="Roleselector">
+            <option value="">Select Option</option>
+            <option value="hero_section">Hero Section</option>
+            <option value="topic_section">Topic Section</option>
+            <option value="middle_section">Middle Section</option>
+            <option value="employee_section">Employee Section</option>
+            <option value="customer_review_section">Customer Review Section</option>
+            <option value="tems_and_condition_section">Terms and Condition Section</option>
+            <option value="privacy_policy_section">Privacy Policy Section</option>
+            <option value="faq_section">FAQ Section</option>
+        </select>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-gradient-primary btn-sm">Submit</button>
+        </div>
+        </form>
+    </div>
+    </div>
+</div>
+{% endblock %}

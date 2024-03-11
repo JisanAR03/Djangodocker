@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Menu create section - Artixcore{% endblock %}
+{% block styles %}
+<script src="https://cdn.tiny.cloud/1/960kobncrxudx59ppea6rk1lzv12srgvf532eg5odgih6auw/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      tinymce.init({
+        selector: 'textarea',
+        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount linkchecker code',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code',
+        setup: function(editor) {
+              editor.on('init', function(args) {
+                  document.getElementById('short_des').required = false; // Remove required if TinyMCE is initialized
+              });
+          }
+      });
+  
+      var form = document.querySelector('form'); // Adjust if your form has an id or specific class
+      form.addEventListener('submit', function(e) {
+          tinymce.triggerSave(); // Ensure content is synced
+          // Optional: Validate TinyMCE content here and prevent submission if needed
+      });
+  });
+  </script>
+  
+{% endblock %}
+{% block content %}
+<div class="grid-margin stretch-card">
+    <div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Edit Menu Section</h4>
+        <form class="forms-sample" action="{% url 'editMenu' id=menu.id %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="exampleInputName1">Name</label>
+            <input type="text" name="menu_name" class="form-control" id="exampleInputName1" placeholder="Name" required value="{{ menu.menu_name }}">
+        </div>
+        <div class="form-group">
+            <label for="Roleselector">Parent Menu</label>
+            <select class="form-control" name="parent_menu" id="Roleselector">
+                <option value="">Select Option</option>
+                {% for parentmenu in all_menus %}
+                <option value="{{ parentmenu.id }}" {% if parentmenu.id == menu.parent_menu.id %} selected {% endif %}>{{ parentmenu.menu_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <!-- sequence -->
+        <div class="form-group">
+            <label for="exampleInputName21">Sequence</label>
+            <input type="number" class="form-control" id="exampleInputName21" placeholder="Sequence" name="sequence" value="{{ menu.sequence }}">
+        </div>
+        <!-- title  -->
+        <div class="form-group">
+            <label for="exampleInputName22">Title</label>
+            <input type="text" class="form-control" id="exampleInputName22" placeholder="Title" name="title" required value="{{ menu.menucontent.title }}">
+        </div>
+        <!-- meta_title -->
+        <div class="form-group">
+            <label for="exampleInputName23">Meta Title</label>
+            <input type="text" class="form-control" id="exampleInputName23" placeholder="Meta Title" name="meta_title" value="{{ menu.menucontent.meta_title }}">
+        </div>
+        <div class="form-group">
+            <label for="short_des">Short Description</label>
+            <textarea name="description" class="form-control" id="short_des" rows="4" required data-gramm="false" wt-ignore-input="true">{{ menu.menucontent.description.description }}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Icon</label>
+            <input type="file" name="icon" class="file-upload-default">
+            {% if menu.menucontent.icon %}
+            <div class="col-md-4">
+                <div class="card">
+                  <div class="card-body">
+                    <!-- include main url with image src  -->
+                    <img src="{{ menu.menucontent.icon.url }}" class="img-fluid" alt="Responsive image">
+                  </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="input-group col-xs-12">
+              <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Icon" required>
+              <span class="input-group-append">
+                <button class="file-upload-browse btn btn-gradient-primary" type="button">Upload</button>
+              </span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Image</label>
+            <input type="file" name="image" class="file-upload-default">
+            {% if menu.menucontent.image %}
+            <div class="col-md-4">
+                <div class="card">
+                  <div class="card-body">
+                    <!-- include main url with image src  -->
+                    <img src="{{ menu.menucontent.image.url }}" class="img-fluid" alt="Responsive image">
+                  </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="input-group col-xs-12">
+              <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Image" required>
+              <span class="input-group-append">
+                <button class="file-upload-browse btn btn-gradient-primary" type="button">Upload</button>
+              </span>
+            </div>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-gradient-primary btn-sm">Submit</button>
+        </div>
+        </form>
+    </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'assets/js/file-upload.js' %}"></script>
+{% endblock %}

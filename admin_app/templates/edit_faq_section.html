@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Edit FAQ Section - Artixcore{% endblock %}
+{% block styles %}
+<script src="https://cdn.tiny.cloud/1/960kobncrxudx59ppea6rk1lzv12srgvf532eg5odgih6auw/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Initialize TinyMCE for all textareas on the page initially
+      tinymce.init({
+        selector: 'textarea',
+        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount linkchecker code',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code',
+        setup: function(editor) {
+            editor.on('init', function(args) {
+                args.target.getElement().required = false; // Remove 'required' from all textareas as TinyMCE initializes
+            });
+        }
+      });
+  });
+</script>
+{% endblock %}
+{% block content %}
+<div class="grid-margin stretch-card">
+    <div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Edit FAQ Section</h4>
+        <form class="forms-sample" action="{% url 'editContent' id=content.id %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="content_type" value="faq_section">
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" name="title" class="form-control" id="title" placeholder="Title" required value="{{ content.content.title }}">
+        </div>
+        <div class="form-group">
+            <label for="short_des">Short Description</label>
+            <textarea name="short_des" class="form-control" id="short_des" rows="4">{{ content.content.short_des }}</textarea>
+        </div>
+        {% for faq_item in content.content.faq %}
+        <div class="row qa-section py-4 px-1 my-2" style="background: #8080804a;border: 2px solid black; border-radius: 12px;">
+            <div class="col-md-11">
+                <div class="form-group">
+                    <label>Question</label>
+                    <!-- print the value of question here -->
+                    <input type="text" name="question[]" class="form-control" placeholder="Question" required value="{{ faq_item.question }}">
+                </div>
+            </div>
+            <div class="col-md-11">
+                <div class="form-group">
+                    <label>Answer</label>
+                    <textarea name="answer[]" class="form-control" rows="4">{{ faq_item.answer }}</textarea>
+                </div>
+            </div>
+            <div class="col-md-1 mt-4">
+                <button type="button" class="btn btn-danger btn-sm remove-section">-</button>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="row my-3">
+            <div class="col-12">
+                <button type="button" class="btn btn-gradient-primary btn-sm" id="add_more">Add More</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-gradient-primary btn-sm">Submit</button>
+        </div>
+        </form>
+    </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'assets/js/file-upload.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const originalSection = document.querySelector('.qa-section');  // Get the original section
+        const addMoreBtn = document.getElementById('add_more');  // Get the 'add more' button
+        const formSample = originalSection.cloneNode(true);  // Clone it for future use
+
+        function refreshSection(section) {
+            section.querySelectorAll('input, textarea').forEach(function (input) {
+                input.value = '';  // Clear the value
+                if (input.tagName.toLowerCase() === 'textarea') {
+                    input.removeAttribute('id'); // Remove the id attribute from the textarea
+                }
+            });
+            section.querySelector('.remove-section').style.display = 'block';  // Show the remove button
+        }
+
+        function addNewSection() {
+            const newSection = formSample.cloneNode(true);  // Clone the sample section
+            refreshSection(newSection);  // Refresh the cloned section
+            originalSection.parentNode.insertBefore(newSection, addMoreBtn.parentNode.parentNode);  // Insert new section before the 'add more' button row
+            initNewTextArea(newSection.querySelector('textarea')); // Initialize TinyMCE for the new textarea
+        }
+
+        function initNewTextArea(textarea) {
+            // Make sure to give a unique ID to the new textarea
+            const uniqueId = 'textarea_' + Math.random().toString(36).substr(2, 9);
+            textarea.id = uniqueId;
+            tinymce.init({
+                selector: '#' + uniqueId,
+                plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount linkchecker code',
+                toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code'
+            });
+        }
+
+        addMoreBtn.addEventListener('click', addNewSection);
+
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-section')) {
+                e.target.closest('.qa-section').remove();
+            }
+        });
+
+        var form = document.getElementById('faq_section_form');
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            tinymce.triggerSave();  // Ensure content is synced
+            if (form.checkValidity()) {
+                form.submit();
+            }else{
+                form.reportValidity();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Hero section - Artixcore{% endblock %}
+{% block styles %}
+<script src="https://cdn.tiny.cloud/1/960kobncrxudx59ppea6rk1lzv12srgvf532eg5odgih6auw/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      tinymce.init({
+        selector: 'textarea',
+        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount linkchecker code',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code',
+        setup: function(editor) {
+              editor.on('init', function(args) {
+                  document.getElementById('short_des').required = false; // Remove required if TinyMCE is initialized
+              });
+          }
+      });
+  
+      var form = document.querySelector('form'); // Adjust if your form has an id or specific class
+      form.addEventListener('submit', function(e) {
+          tinymce.triggerSave(); // Ensure content is synced
+          // Optional: Validate TinyMCE content here and prevent submission if needed
+      });
+  });
+  </script>
+  
+{% endblock %}
+{% block content %}
+<div class="grid-margin stretch-card">
+    <div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Add Tems and Condition Section</h4>
+        <form class="forms-sample" action="{% url 'submitContent' %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="content_type" value="privacy_policy_section">
+        <div class="form-group">
+            <label for="exampleInputName1">Title</label>
+            <input type="text" name="title" class="form-control" id="exampleInputName1" placeholder="title" required>
+        </div>
+        <div class="form-group">
+            <label for="short_des">Short Description</label>
+            <textarea name="short_des" class="form-control" id="short_des" rows="4" required data-gramm="false" wt-ignore-input="true"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Image</label>
+            <input type="file" name="image" class="file-upload-default">
+            <div class="input-group col-xs-12">
+              <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Image" >
+              <span class="input-group-append">
+                <button class="file-upload-browse btn btn-gradient-primary" type="button">Upload</button>
+              </span>
+            </div>
+          </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-gradient-primary btn-sm">Submit</button>
+        </div>
+        </form>
+    </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'assets/js/file-upload.js' %}"></script>
+{% endblock %}

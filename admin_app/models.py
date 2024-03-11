@@ -33,26 +33,7 @@ class CustomUser(AbstractUser):
     creator = models.ForeignKey('self', on_delete=models.CASCADE,blank=True,null=True)
     
 class FrontendContent(models.Model):
-    CONTENT_TYPES = [
-        ('hero_section', 'Hero Section'),
-        ('about_section', 'About Section'),
-        ('services_section', 'Services Section'),
-        ('blog_section', 'Blog Section'),
-        ('projects_section', 'Projects Section'),
-        ('protfolio_section', 'Protfolio Section'),
-        ('reviews_section', 'Reviews Section'),
-        ('pricing_section', 'Pricing Section'),
-        ('team_section', 'Team Section'),
-        ('contact_section', 'Contact Section'),
-        ('social_links', 'Social Links'),
-        ('footer_section', 'Footer Section'),
-    ]
-    TITLE_TYPES = [
-        ('main_content', 'Main Content'),
-        ('sub_content', 'Sub Content'),
-    ]
-    content_type = models.CharField(max_length=20, choices=CONTENT_TYPES)
-    title_type = models.CharField(max_length=20, choices=TITLE_TYPES)
+    content_type = models.CharField(max_length=50)
     image = models.ImageField(upload_to='frontend_content_images/',blank=True,null=True)
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE,blank=True,null=True)
     content = models.JSONField(blank=True,null=True)
@@ -77,8 +58,9 @@ class Menu(models.Model):
         return self.menu_name
     
 class MenuContent(models.Model):
-    menu_id = models.ForeignKey(Menu, on_delete=models.CASCADE,blank=True,null=True,unique=True)
+    menu = models.OneToOneField(Menu, on_delete=models.CASCADE, related_name='menucontent',blank=True,null=True)
     image = models.ImageField(upload_to='menu_content_images/',blank=True,null=True)
+    icon = models.ImageField(upload_to='menu_content_icons/',blank=True,null=True)
     title = models.CharField(max_length=100)
     meta_title = models.CharField(max_length=100,blank=True,null=True)
     description = models.JSONField(blank=True,null=True)
@@ -88,3 +70,14 @@ class MenuContent(models.Model):
     
     def __str__(self):
         return self.title
+    
+class Contact_form(models.Model):
+    name = models.CharField(max_length=100,blank=True,null=True)
+    email = models.EmailField()
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    is_deleted = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.name

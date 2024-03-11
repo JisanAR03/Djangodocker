@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Hero section - Artixcore{% endblock %}
+{% block styles %}
+<script src="https://cdn.tiny.cloud/1/960kobncrxudx59ppea6rk1lzv12srgvf532eg5odgih6auw/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      tinymce.init({
+        selector: 'textarea',
+        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount linkchecker code',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code',
+        setup: function(editor) {
+              editor.on('init', function(args) {
+                  document.getElementById('short_des').required = false; // Remove required if TinyMCE is initialized
+              });
+          }
+      });
+  
+      var form = document.querySelector('form'); // Adjust if your form has an id or specific class
+      form.addEventListener('submit', function(e) {
+          tinymce.triggerSave(); // Ensure content is synced
+      });
+  });
+  </script>
+  
+{% endblock %}
+{% block content %}
+<div class="grid-margin stretch-card">
+    <div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Add Hero Section</h4>
+        <form class="forms-sample" action="{% url 'editContent' id=content.id %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="content_type" value="customer_review_section">
+        <div class="form-group">
+            <label for="exampleInputName1">Name</label>
+            <input type="text" name="name" class="form-control" id="exampleInputName1" placeholder="Name" required value="{{ content.content.name }}" >
+        </div>
+        <div class="form-group">
+            <label for="Roleselector">Status</label>
+            <select class="form-control" name="status" id="Roleselector" required>
+                <option value="">Select Option</option>
+                <option value='verified' {% if content.content.status == "verified" %} selected {% endif %}>Verified</option>
+                <option value='unverified' {% if content.content.status == "unverified" %} selected {% endif %}>Unverified</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="Roleselector">Rating</label>
+            <select class="form-control" name="rating" id="Roleselector" required>
+                <option value="">Select Option</option>
+                <option value="1" {% if content.content.rating == "1" %} selected {% endif %}>1</option>
+                <option value="2" {% if content.content.rating == "2" %} selected {% endif %}>2</option>
+                <option value="3" {% if content.content.rating == "3" %} selected {% endif %}>3</option>
+                <option value="4" {% if content.content.rating == "4" %} selected {% endif %}>4</option>
+                <option value="5" {% if content.content.rating == "5" %} selected {% endif %}>5</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="short_des">Short Description</label>
+            <textarea name="short_des" class="form-control" id="short_des" rows="4" required data-gramm="false" wt-ignore-input="true">{{ content.content.short_des }}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Profile Image</label>
+            <input type="file" name="image" class="file-upload-default">
+            <div class="col-md-4">
+                <div class="card">
+                  <div class="card-body">
+                    <!-- include main url with image src  -->
+                    <img src="{{ content.image.url }}" class="img-fluid" alt="Responsive image">
+                  </div>
+                </div>
+              </div>
+            <div class="input-group col-xs-12">
+              <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Image" required>
+              <span class="input-group-append">
+                <button class="file-upload-browse btn btn-gradient-primary" type="button">Upload</button>
+              </span>
+            </div>
+          </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-gradient-primary btn-sm">Submit</button>
+        </div>
+        </form>
+    </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'assets/js/file-upload.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}User message section - Artixcore{% endblock %}
+
+{% block content %}
+<div class="grid-margin stretch-card">
+    <div class="card">
+    <div class="card-body">
+        <h4 class="card-title">User Message</h4>
+        <div class="form-group">
+            <label for="exampleInputName1">Title</label>
+            <input type="text" class="form-control" id="exampleInputName1" value="{{ message.name }}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="exampleInputName2">Email</label>
+            <input type="text" class="form-control" id="exampleInputName2" value="{{ message.email }}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="exampleTextarea3">Message</label>
+            <textarea name="short_des" class="form-control" id="exampleTextarea3" rows="4" readonly>{{ message.message }}</textarea>
+        </div>
+    </div>
+    </div>
+</div>
+{% endblock %}

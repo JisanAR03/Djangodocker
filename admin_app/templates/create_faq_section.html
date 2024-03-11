@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Hero section - Artixcore{% endblock %}
+{% block styles %}
+<script src="https://cdn.tiny.cloud/1/960kobncrxudx59ppea6rk1lzv12srgvf532eg5odgih6auw/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Initialize TinyMCE for all textareas on the page initially
+      tinymce.init({
+        selector: 'textarea',
+        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount linkchecker code',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code',
+        setup: function(editor) {
+            editor.on('init', function(args) {
+                args.target.getElement().required = false; // Remove 'required' from all textareas as TinyMCE initializes
+            });
+        }
+      });
+  
+      var form1 = document.querySelector('form'); // Adjust if your form has an id or specific class
+      form1.addEventListener('submit', function(e) {
+          tinymce.triggerSave(); // Ensure TinyMCE content is synced with the textarea
+          let isValid = true;
+          const editors = tinymce.editors;
+          editors.forEach(editor => {
+              if (editor.getContent().trim() === '') { // Check if the content is empty
+                  isValid = false;
+                  // Highlight the editor's iframe or container here to show error
+                  editor.getContainer().style.border = '2px solid red'; // Example to show error
+              } else {
+                  editor.getContainer().style.border = ''; // Reset the border if content is valid
+              }
+          });
+
+          if (!isValid) {
+              e.preventDefault(); // Prevent form submission if any TinyMCE content is empty
+                alert('Please fill in all the fields');
+          }
+      });
+  });
+</script>
+{% endblock %}
+{% block content %}
+<div class="grid-margin stretch-card">
+    <div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Add Terms and Condition Section</h4>
+        <form class="forms-sample" action="{% url 'submitContent' %}" method="POST" enctype="multipart/form-data" id="faq_section_form">
+        {% csrf_token %}
+        <input type="hidden" name="content_type" value="faq_section">
+        <div class="form-group">
+            <label for="exampleInputName1">Title</label>
+            <input type="text" name="title" class="form-control" id="exampleInputName1" placeholder="title" required>
+        </div>
+        <div class="form-group">
+            <label for="short_des">Short Description</label>
+            <textarea name="short_des" class="form-control" id="short_des" rows="4" data-gramm="false" wt-ignore-input="true"></textarea>
+        </div>
+        <!-- make this div look like it's in a loop and separate it from the above div -->
+        <div class="row qa-section py-4 px-1 my-2" style="background: #8080804a;border: 2px solid black; border-radius: 12px;">  <!-- Note the added class 'qa-section' -->
+            <div class="col-md-11">
+                <div class="form-group">
+                    <label>Question</label>
+                    <input type="text" name="question[]" class="form-control" placeholder="Question" required>
+                </div>
+            </div>
+            <div class="col-md-11">
+                <div class="form-group">
+                    <label>Answer</label>
+                    <textarea name="answer[]" class="form-control" rows="4" data-gramm="false" wt-ignore-input="true"></textarea>
+                </div>
+            </div>
+            <!-- Initially hide the remove button in the first QA pair -->
+            <div class="col-md-1 mt-4">
+                <button type="button" class="btn btn-danger btn-sm remove-section" style="display: none;">-</button>
+            </div>
+        </div>
+        <div class="row my-3">
+            <div class="col-12">
+                <button type="button" class="btn btn-gradient-primary btn-sm" id="add_more">Add More</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-gradient-primary btn-sm">Submit</button>
+        </div>
+        </form>
+    </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'assets/js/file-upload.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const originalSection = document.querySelector('.qa-section');  // Get the original section
+        const addMoreBtn = document.getElementById('add_more');  // Get the 'add more' button
+        const formSample = originalSection.cloneNode(true);  // Clone it for future use
+
+        function refreshSection(section) {
+            section.querySelectorAll('input, textarea').forEach(function (input) {
+                input.value = '';  // Clear the value
+                if (input.tagName.toLowerCase() === 'textarea') {
+                    input.removeAttribute('id'); // Remove the id attribute from the textarea
+                }
+            });
+            section.querySelector('.remove-section').style.display = 'block';  // Show the remove button
+        }
+
+        function addNewSection() {
+            const newSection = formSample.cloneNode(true);  // Clone the sample section
+            refreshSection(newSection);  // Refresh the cloned section
+            originalSection.parentNode.insertBefore(newSection, addMoreBtn.parentNode.parentNode);  // Insert new section before the 'add more' button row
+            initNewTextArea(newSection.querySelector('textarea')); // Initialize TinyMCE for the new textarea
+        }
+
+        function initNewTextArea(textarea) {
+            // Make sure to give a unique ID to the new textarea
+            const uniqueId = 'textarea_' + Math.random().toString(36).substr(2, 9);
+            textarea.id = uniqueId;
+            tinymce.init({
+                selector: '#' + uniqueId,
+                plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount linkchecker code',
+                toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code'
+            });
+        }
+
+        addMoreBtn.addEventListener('click', addNewSection);
+
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-section')) {
+                e.target.closest('.qa-section').remove();
+            }
+        });
+
+        var form = document.getElementById('faq_section_form');
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            tinymce.triggerSave();  // Ensure content is synced
+            if (form.checkValidity()) {
+                form.submit();
+            }else{
+                form.reportValidity();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import FrontendContent, Menu, MenuContent
+from .models import FrontendContent, Menu, MenuContent, Contact_form
 from django.conf import settings
 from django.core.mail import send_mail
 
@@ -109,3 +109,17 @@ class MenuContentSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get('description', instance.description)
         instance.save()
         return instance
+    
+    
+class Contact_formSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact_form
+        fields = ['id','name', 'email', 'message', 'created_at']
+        
+    def create(self, validated_data):
+        contact_form = Contact_form.objects.create(
+            name=validated_data['name'],
+            email=validated_data['email'],
+            message=validated_data['message']
+        )
+        return contact_form

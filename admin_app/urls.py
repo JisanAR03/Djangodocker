@@ -4,22 +4,38 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('api/heroPart/', views.hero_part, name="hero_part"),
-    path('api/topics/', views.all_topics, name='all_topics'),
-    # teh topic topic get data with wenu_link
-    path('api/topics/<str:menu_link>/', views.topic_details, name='topic_by_menu_link'),
-    path('api/latestEmployees/', views.latest_employees, name='latest_employees'),
-    path('api/employees/', views.all_employees, name='all_employees'),
-    path('api/blogs/', views.all_blogs, name='all_blogs'),
-    path('api/blogs/<int:blog_id>/', views.blog_details, name='blog_details'),
-    path('api/privacy_policy/', views.privacy_policy, name='privacy_policy'),
     path('api/menu/', views.list_menu_content, name='list-menu-content'),
+    path('api/home_page_content/', views.home_page_content, name='home_page_content'),
+    path('api/employee/<int:id>/', views.employee_details, name='employee_details'),
+    path('api/faq/', views.faq, name='faq'),
+    path('api/terms_and_condition/', views.tems_and_condition, name='terms_and_condition'),
+    path('api/privacy_policy/', views.privacy_policy, name='privacy_policy'),
+    path('api/contact/', views.contact_us, name='contact_us'), #post request
+    path('api/menu_details/<str:menu_link>/', views.menu_details, name='menu_details'),
     
     
-    
-    
-    
+    # backend path from here
+    path('', views.index, name='index'),
+    path('logout/', views.logout, name='logout'),
+    path('sitelogin/', views.sitelogin, name='sitelogin'),
+    path('createUser/', views.createUser, name='createUser'),
+    path('users/', views.users, name='users'),
+    path('verify_user/<int:id>/', views.verify_user, name='verify_user'),
+    path('delete_user/<int:id>/', views.delete_user, name='delete_user'),
+    path('createFrontendContent/', views.createFrontendContent, name='createFrontendContent'),
+    path('submitContent/', views.submitContent, name='submitContent'),
+    path('contentList/', views.contentList, name='contentList'),
+    path('editContent/<int:id>/', views.editContent, name='editContent'),
+    path('deleteContent/<int:id>/', views.deleteContent, name='deleteContent'),
+    path('userMessages/', views.userMessages, name='userMessages'),
+    path('deleteMessage/<int:id>/', views.deleteMessage, name='deleteMessage'),
+    path('viewMessage/<int:id>/', views.viewMessage, name='viewMessage'),
+    path('menuList/', views.menuList, name='menuList'),
+    path('deleteMenu/<int:id>/', views.deleteMenu, name='deleteMenu'),
+    path('editMenu/<int:id>/', views.editMenu, name='editMenu'),
+    path('createMenu/', views.createMenu, name='createMenu'),
+
+
     re_path('login/', views.login, name='login'), #post request
     re_path('user_type/', views.user_type_list, name='user_type'), #get request
     re_path('change_password/', views.change_password, name='change_password'), #put request --->new added

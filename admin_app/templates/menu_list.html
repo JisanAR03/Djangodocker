@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Menu Page - Artixcore{% endblock %}
+
+{% block content %}
+<div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center mb-3">
+        <h4 class="card-title m-0">Menu Table</h4>
+        <a href="{% url 'createMenu' %}"><button type="button" class="btn btn-gradient-info btn-sm ms-4" >Add Menu</button></a>
+        </div>      
+        <div class="table-responsive">
+        <table class="table table-striped">
+        <thead>
+            <tr>
+            <th> ID </th>
+            <th> Name </th>
+            <th> Parent </th>
+            <th> Link </th>
+            <th> Sequence </th>
+            <th> Icon </th>
+            <th> Edit </th>
+            <th> Delete </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for menu in menus %}
+            <tr>
+                <td> {{ menu.id }} </td>
+                <td> {{ menu.menu_name }} </td>
+                <td> {% if menu.parent_menu %} {{ menu.parent_menu }} {% else %} Not Available {% endif %} </td>
+                <td> {% if menu.menu_link %} {{ menu.menu_link }} {% else %} Not Available {% endif %} </td>
+                <td> {% if menu.sequence %} {{ menu.sequence }} {% else %} Not Available {% endif %} </td>
+                <td>{% if menu.menucontent.icon %} <span class="badge badge-success">Yes</span>{% else %}<span class="badge badge-danger">No</span>{% endif %} </td>
+                <td> <a href="{% url 'editMenu' id=menu.id %}"> <span class="badge badge-warning">Edit</span> </a> </td>
+                <td> <a href="{% url 'deleteMenu' id=menu.id %}" onclick="event.preventDefault(); if(confirm('Are you sure?')) { window.location.href = this.href; }" > <span class="badge badge-danger">Delete</span> </a> </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+        </div>
+    </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <!-- DataTables JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script>$(document).ready( function () {
+      $('.table').DataTable();
+    } );
+    </script>
+{% endblock %}

@@ -1,17 +1,21 @@
-from django.shortcuts import render
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.response import Response
-from .serializers import UserCreateSerializer, FrontendContentSerializer, MenuSerializer, MenuContentSerializer
+from .serializers import UserCreateSerializer, FrontendContentSerializer, MenuSerializer, MenuContentSerializer, Contact_formSerializer
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
-from .models import FrontendContent, CustomUser, Menu, MenuContent
+from django.contrib.auth import get_user_model,authenticate,login as auth_login,logout as auth_logout
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import FrontendContent, CustomUser, Menu, MenuContent, Contact_form
 import logging
 import os
 from django.conf import settings
+from django.contrib import messages
+from .forms import CustomUserCreationForm
+from django.http import HttpResponseRedirect, HttpResponse
+
+
 
 logger = logging.getLogger()
 
@@ -1107,3 +1111,595 @@ def privacy_policy(request):
         'content': 'It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).It is a long established fact that a reader will be distracted by the readable content It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).It is a long established fact that a reader will be distracted by the readable content It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).It is a long established fact that a reader will be distracted by the readable contentIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).It is a long established fact that a reader will be distracted by the readable content',
     }
     return Response(privacy_policy)
+
+
+
+
+
+# backend views are here
+def logout(request):
+    auth_logout(request)
+    return redirect('index')
+
+def sitelogin(request):
+    if request.method == 'POST':
+        
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, email=email, password=password)
+        if user is not None:
+            messages.success(request, 'your are login successfully')
+            auth_login(request, user)
+            return redirect('index')
+        else:
+            messages.error(request, 'Email or Password is incorrect')
+    return render(request, 'index.html')
+
+def createUser(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'User Created Successfully')
+        else:
+            messages.error(request, form.errors.as_text())
+    else:
+        form = CustomUserCreationForm()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+def users(request):
+    users = CustomUser.objects.all()
+    return render(request, 'users.html', {'users': users})
+
+def verify_user(request, id):
+    user = get_object_or_404(CustomUser, id=id)
+    # if verified make it unverified and not verified make it verified
+    if user.is_verified:
+        messages.success(request, 'User Unverified Successfully')
+        user.is_verified = False
+        user.save()
+    else:
+        messages.success(request, 'User Verified Successfully')
+        user.is_verified = True
+        user.save()
+    return redirect('users')
+
+def delete_user(request, id):
+    user = get_object_or_404(CustomUser, id=id)
+    user.delete()
+    messages.success(request, 'User Deleted Successfully')
+    return redirect('users')
+
+def createFrontendContent(request):
+    if request.method == 'POST':
+        if request.POST.get('content_type') == 'hero_section':
+            return render(request, 'create_hero_section.html')
+        elif request.POST.get('content_type') == 'topic_section':
+            return render(request, 'create_topic_section.html')
+        elif request.POST.get('content_type') == 'middle_section':
+            return render(request, 'create_middle_section.html')
+        elif request.POST.get('content_type') == 'employee_section':
+            return render(request, 'create_employee_section.html')
+        elif request.POST.get('content_type') == 'customer_review_section':
+            return render(request, 'create_customer_review_section.html')
+        elif request.POST.get('content_type') == 'tems_and_condition_section':
+            return render(request, 'create_tems_and_condition_section.html')
+        elif request.POST.get('content_type') == 'privacy_policy_section':
+            return render(request, 'create_privacy_policy_section.html')
+        elif request.POST.get('content_type') == 'faq_section':
+            return render(request, 'create_faq_section.html')
+    return render(request, 'create_frontend_content.html')
+
+def submitContent(request):
+    if request.method == 'POST':
+        if request.POST.get('content_type') == 'hero_section':
+            try:
+                if FrontendContent.objects.filter(content_type='hero_section').exists():
+                    messages.error(request, 'Hero Section Already Exist')
+                else:
+                    author = request.user
+                    title = request.POST.get('title')
+                    short_des = request.POST.get('short_des')
+                    video_url = request.POST.get('video_url')
+                    content = {'title': title, 'short_des': short_des, 'video_url': video_url}
+                    FrontendContent.objects.create(content_type='hero_section', author=author, content=content)
+                    messages.success(request, 'Hero Section Created Successfully')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif request.POST.get('content_type') == 'topic_section':
+            try:
+                if FrontendContent.objects.filter(content_type='topic_section').count() == 3:
+                    messages.error(request, 'You can not create more than 3 topic section')
+                else:
+                    image = request.FILES.get('image')
+                    author = request.user
+                    title = request.POST.get('title')
+                    short_des = request.POST.get('short_des')
+                    content = {'title': title, 'short_des': short_des}
+                    FrontendContent.objects.create(content_type='topic_section', author=author, content=content, image=image)
+                    messages.success(request, 'Topic Section Created Successfully')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif request.POST.get('content_type') == 'middle_section':
+            try:
+                if FrontendContent.objects.filter(content_type='middle_section').exists():
+                    messages.error(request, 'Middle Section Already Exist')
+                else:
+                    image = request.FILES.get('image')
+                    author = request.user
+                    title = request.POST.get('title')
+                    short_des = request.POST.get('short_des')
+                    link = request.POST.get('link')
+                    content = {'title': title, 'short_des': short_des, 'link': link}
+                    FrontendContent.objects.create(content_type='middle_section', author=author, content=content, image=image)
+                    messages.success(request, 'Middle Section Created Successfully')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif request.POST.get('content_type') == 'employee_section':
+            try:
+                image = request.FILES.get('image')
+                author = request.user
+                name = request.POST.get('name')
+                position = request.POST.get('position')
+                short_des = request.POST.get('short_des')
+                content = {'name': name, 'position': position, 'short_des': short_des}
+                FrontendContent.objects.create(content_type='employee_section', author=author, content=content, image=image)
+                messages.success(request, 'Employee Section Created Successfully')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif request.POST.get('content_type') == 'customer_review_section':
+            try:
+                image = request.FILES.get('image')
+                author = request.user
+                name = request.POST.get('name')
+                status = request.POST.get('status')
+                rating = request.POST.get('rating')
+                short_des = request.POST.get('short_des')
+                content = {'name': name, 'status': status, 'rating': rating, 'short_des': short_des}
+                FrontendContent.objects.create(content_type='customer_review_section', author=author, content=content, image=image)
+                messages.success(request, 'Customer Review Section Created Successfully')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif request.POST.get('content_type') == 'tems_and_condition_section':
+            try:
+                if FrontendContent.objects.filter(content_type='tems_and_condition_section').exists():
+                    messages.error(request, 'Tems and Condition Section Already Exist')
+                else:
+                    author = request.user
+                    if (request.FILES.get('image')):
+                        image = request.FILES.get('image')
+                    else:
+                        image = None
+                    title = request.POST.get('title')
+                    short_des = request.POST.get('short_des')
+                    content = {'title': title, 'short_des': short_des}
+                    FrontendContent.objects.create(content_type='tems_and_condition_section', author=author, content=content, image=image)
+                    messages.success(request, 'Tems and Condition Section Created Successfully')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif request.POST.get('content_type') == 'privacy_policy_section':
+            try:
+                if FrontendContent.objects.filter(content_type='privacy_policy_section').exists():
+                    messages.error(request, 'Privacy Policy Section Already Exist')
+                else:
+                    author = request.user
+                    if (request.FILES.get('image')):
+                        image = request.FILES.get('image')
+                    else:
+                        image = None
+                    title = request.POST.get('title')
+                    short_des = request.POST.get('short_des')
+                    content = {'title': title, 'short_des': short_des}
+                    FrontendContent.objects.create(content_type='privacy_policy_section', author=author, content=content, image=image)
+                    messages.success(request, 'Privacy Policy Section Created Successfully')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif request.POST.get('content_type') == 'faq_section':
+            try:
+                if FrontendContent.objects.filter(content_type='faq_section').exists():
+                    messages.error(request, 'FAQ Section Already Exist')
+                else:
+                    author = request.user
+                    title = request.POST.get('title')
+                    short_des = request.POST.get('short_des')
+                    questions = request.POST.getlist('question[]')
+                    answers = request.POST.getlist('answer[]')
+                    faq = []
+                    for i in range(len(questions)):
+                        faq.append({'question': questions[i], 'answer': answers[i]})
+                    content = {'title': title, 'short_des': short_des, 'faq': faq}
+                    FrontendContent.objects.create(content_type='faq_section', author=author, content=content)
+                    messages.success(request, 'FAQ Section Created Successfully')
+            except:
+                messages.error(request, 'Something went wrong')
+    return redirect('contentList')
+
+def contentList(request):
+    contents = FrontendContent.objects.all()
+    return render(request, 'content_list.html', {'contents': contents})
+
+def deleteContent(request, id):
+    content = get_object_or_404(FrontendContent, id=id)
+    content.delete()
+    messages.success(request, 'Content Deleted Successfully')
+    return redirect('contentList')
+
+def editContent(request, id):
+    content = get_object_or_404(FrontendContent, id=id)
+    if request.method == 'POST':
+        if content.content_type == 'hero_section':
+            try:
+                if request.POST.get('title'):
+                    content.content['title'] = request.POST.get('title')
+                if request.POST.get('short_des'):
+                    content.content['short_des'] = request.POST.get('short_des')
+                if request.POST.get('video_url'):
+                    content.content['video_url'] = request.POST.get('video_url')
+                content.save()
+                messages.success(request, 'Content Updated Successfully')
+                return redirect('contentList')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif content.content_type == 'topic_section':
+            try:
+                if request.POST.get('title'):
+                    content.content['title'] = request.POST.get('title')
+                if request.POST.get('short_des'):
+                    content.content['short_des'] = request.POST.get('short_des')
+                if request.FILES.get('image'):
+                    content.image = request.FILES.get('image')
+                content.save()
+                messages.success(request, 'Content Updated Successfully')
+                return redirect('contentList')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif content.content_type == 'middle_section':
+            try:
+                if request.POST.get('title'):
+                    content.content['title'] = request.POST.get('title')
+                if request.POST.get('short_des'):
+                    content.content['short_des'] = request.POST.get('short_des')
+                if request.POST.get('link'):
+                    content.content['link'] = request.POST.get('link')
+                if request.FILES.get('image'):
+                    content.image = request.FILES.get('image')
+                content.save()
+                messages.success(request, 'Content Updated Successfully')
+                return redirect('contentList')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif content.content_type == 'employee_section':
+            try:
+                if request.POST.get('name'):
+                    content.content['name'] = request.POST.get('name')
+                if request.POST.get('position'):
+                    content.content['position'] = request.POST.get('position')
+                if request.POST.get('short_des'):
+                    content.content['short_des'] = request.POST.get('short_des')
+                if request.FILES.get('image'):
+                    content.image = request.FILES.get('image')
+                content.save()
+                messages.success(request, 'Content Updated Successfully')
+                return redirect('contentList')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif content.content_type == 'customer_review_section':
+            try:
+                if request.POST.get('name'):
+                    content.content['name'] = request.POST.get('name')
+                if request.POST.get('status'):
+                    content.content['status'] = request.POST.get('status')
+                if request.POST.get('rating'):
+                    content.content['rating'] = request.POST.get('rating')
+                if request.POST.get('short_des'):
+                    content.content['short_des'] = request.POST.get('short_des')
+                if request.FILES.get('image'):
+                    content.image = request.FILES.get('image')
+                content.save()
+                messages.success(request, 'Content Updated Successfully')
+                return redirect('contentList')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif content.content_type == 'tems_and_condition_section':
+            try:
+                if request.POST.get('title'):
+                    content.content['title'] = request.POST.get('title')
+                if request.POST.get('short_des'):
+                    content.content['short_des'] = request.POST.get('short_des')
+                if request.FILES.get('image'):
+                    content.image = request.FILES.get('image')
+                content.save()
+                messages.success(request, 'Content Updated Successfully')
+                return redirect('contentList')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif content.content_type == 'privacy_policy_section':
+            try:
+                if request.POST.get('title'):
+                    content.content['title'] = request.POST.get('title')
+                if request.POST.get('short_des'):
+                    content.content['short_des'] = request.POST.get('short_des')
+                if request.FILES.get('image'):
+                    content.image = request.FILES.get('image')
+                content.save()
+                messages.success(request, 'Content Updated Successfully')
+                return redirect('contentList')
+            except:
+                messages.error(request, 'Something went wrong')
+        elif content.content_type == 'faq_section':
+            try:
+                if request.POST.get('title'):
+                    content.content['title'] = request.POST.get('title')
+                if request.POST.get('short_des'):
+                    content.content['short_des'] = request.POST.get('short_des')
+                questions = request.POST.getlist('question[]')
+                answers = request.POST.getlist('answer[]')
+                faq = []
+                for i in range(len(questions)):
+                    faq.append({'question': questions[i], 'answer': answers[i]})
+                content.content['faq'] = faq
+                content.save()
+                messages.success(request, 'Content Updated Successfully')
+                return redirect('contentList')
+            except:
+                messages.error(request, 'Something went wrong')
+    
+    if content.content_type == 'hero_section':
+        return render(request, 'edit_hero_section.html', {'content': content})
+    elif content.content_type == 'topic_section':
+        return render(request, 'edit_topic_section.html', {'content': content})
+    elif content.content_type == 'middle_section':
+        return render(request, 'edit_middle_section.html', {'content': content})
+    elif content.content_type == 'employee_section':
+        return render(request, 'edit_employee_section.html', {'content': content})
+    elif content.content_type == 'customer_review_section':
+        return render(request, 'edit_customer_review_section.html', {'content': content})
+    elif content.content_type == 'tems_and_condition_section':
+        return render(request, 'edit_tems_and_condition_section.html', {'content': content})
+    elif content.content_type == 'privacy_policy_section':
+        return render(request, 'edit_privacy_policy_section.html', {'content': content})
+    elif content.content_type == 'faq_section':
+        return render(request, 'edit_faq_section.html', {'content': content})
+    return redirect('contentList')
+
+def userMessages(request):
+    messages = Contact_form.objects.all()
+    template = 'user_messages.html'
+    return render(request, template, {'messages': messages})
+
+def deleteMessage(request, id):
+    message = get_object_or_404(Contact_form, id=id)
+    message.delete()
+    messages.success(request, 'Message Deleted Successfully')
+    return redirect('userMessages')
+
+def viewMessage(request, id):
+    message = get_object_or_404(Contact_form, id=id)
+    return render(request, 'view_message.html', {'message': message})
+
+def menuList(request):
+    menus = Menu.objects.filter(is_deleted=False)
+    # include 'icon' data fron MenuContent
+    return render(request, 'menu_list.html', {'menus': menus})    
+
+def createMenu(request):
+    all_menus = Menu.objects.filter(is_deleted=False)
+    try:
+        if request.method == 'POST':
+            menu_name = request.POST.get('menu_name')
+            menu_link = menu_name.replace(' ', '-').lower()
+            parent_menu = request.POST.get('parent_menu')
+            sequence = request.POST.get('sequence')
+            created_by = request.user
+            title = request.POST.get('title')
+            meta_title = request.POST.get('meta_title')
+            description = request.POST.get('description')
+            description = {'description': description}
+            image = request.FILES.get('image')
+            icon = request.FILES.get('icon')
+            if parent_menu:
+                parent_menu = Menu.objects.get(id=parent_menu)
+            else:
+                parent_menu = None
+            if not sequence:
+                sequence = None
+            if not meta_title:
+                meta_title = None
+            if not image:
+                image = None
+            if not description:
+                description = None
+            if icon:
+                urrent_icon_count = MenuContent.objects.exclude(icon='').exclude(icon__isnull=True).count()
+                if urrent_icon_count >= 7:
+                    messages.error(request, 'You can not create more than 8 menu with icon')
+                    return redirect('menuList')
+            else:
+                icon = None        
+            Menu.objects.create(menu_name=menu_name, menu_link=menu_link, parent_menu=parent_menu, sequence=sequence, created_by=created_by)
+            menu = Menu.objects.get(menu_name=menu_name, menu_link=menu_link, parent_menu=parent_menu, sequence=sequence, created_by=created_by)
+            MenuContent.objects.create(menu=menu, title=title, meta_title=meta_title, description=description, image=image, icon=icon)
+            messages.success(request, 'Menu Created Successfully')
+            return redirect('menuList')
+    except:
+        messages.error(request, 'Something went wrong')   
+    return render(request, 'create_menu.html', {'all_menus': all_menus})
+
+def deleteMenu(request, id):
+    menu = get_object_or_404(Menu, id=id)
+    menu.delete()
+    messages.success(request, 'Menu Deleted Successfully')
+    return redirect('menuList')
+
+def editMenu(request, id):
+    menu = get_object_or_404(Menu, id=id)
+    all_menus = Menu.objects.filter(is_deleted=False)
+    if request.method == 'POST':
+        menu_name = request.POST.get('menu_name')
+        menu_link = menu_name.replace(' ', '-').lower()
+        parent_menu = request.POST.get('parent_menu')
+        sequence = request.POST.get('sequence')
+        title = request.POST.get('title')
+        meta_title = request.POST.get('meta_title')
+        description = request.POST.get('description')
+        description = {'description': description}
+        image = request.FILES.get('image')
+        icon = request.FILES.get('icon')
+        if menu_name:
+            menu.menu_name = menu_name
+            menu.menu_link = menu_link
+        if sequence:
+            menu.sequence = sequence
+        if parent_menu:
+            parent_menu = Menu.objects.get(id=parent_menu)
+            menu.parent_menu = parent_menu
+        menu.save()
+        menu_content = MenuContent.objects.get(menu=menu)
+        if title:
+            menu_content.title = title
+        if meta_title:
+            menu_content.meta_title = meta_title
+        if description:
+            menu_content.description = description
+        if image:
+            menu_content.image = image
+        if icon:
+            if menu.menucontent.icon:
+                pass
+            else:
+                urrent_icon_count = MenuContent.objects.exclude(icon='').exclude(icon__isnull=True).count()
+                if urrent_icon_count >= 7:
+                    messages.error(request, 'You can not create more than 8 menu with icon')
+                    return redirect('menuList')
+            menu_content.icon = icon
+        menu_content.save()
+        messages.success(request, 'Menu Updated Successfully')
+        return redirect('menuList')
+    return render(request, 'edit_menu.html', {'menu': menu, 'all_menus': all_menus})
+
+
+
+
+# now make a api which will return all the contents "hero_section", "topic_section", "middle_section", "employee_section", "customer_review_section" for the frontend
+@api_view(['GET'])
+def home_page_content(request):
+    domain = settings.DOMAIN_NAME
+    contents = FrontendContent.objects.all()
+    content_list = []
+    all_topics = []
+    all_employees = []
+    all_customer_reviews = []
+    all_menu_contents = []
+    for content in contents:
+        if content.content_type == 'hero_section':
+            content_list.append({'hero_section': content.content})
+        elif content.content_type == 'topic_section':
+            all_topics.append({'title': content.content['title'], 'short_des': content.content['short_des'], 'image': domain + content.image.url})
+        elif content.content_type == 'middle_section':
+            all_middle_content = {
+                'title': content.content['title'],
+                'short_des': content.content['short_des'],
+                'link': content.content['link'],
+                'image': domain + content.image.url
+            }
+            content_list.append({'middle_section': all_middle_content})
+        elif content.content_type == 'employee_section':
+            all_employees.append({'id': content.id,'name': content.content['name'], 'position': content.content['position'], 'image': domain + content.image.url})
+        elif content.content_type == 'customer_review_section':
+            all_customer_reviews.append({'name': content.content['name'], 'status': content.content['status'], 'rating': content.content['rating'], 'short_des': content.content['short_des'], 'image': domain + content.image.url})
+
+    content_list.append({'topic_section': all_topics})
+    content_list.append({'employee_section': all_employees})
+    content_list.append({'customer_review_section': all_customer_reviews})
+    menu_contents = MenuContent.objects.exclude(icon='').exclude(icon__isnull=True)[:8]
+    if menu_contents:
+        for menu_content in menu_contents:
+            all_menu_contents.append({'name': menu_content.menu.menu_name, 'icon': domain + menu_content.icon.url})
+        content_list.append({'menu_content': all_menu_contents})
+    if content_list:
+        return Response(content_list, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['GET'])
+def employee_details(request, id):
+    employee = get_object_or_404(FrontendContent, id=id)
+    if employee.content_type == 'employee_section':
+        employee_data = {
+            'name': employee.content['name'],
+            'position': employee.content['position'],
+            'short_des': employee.content['short_des'],
+            'image': settings.DOMAIN_NAME + employee.image.url
+        }
+        return Response(employee_data, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'No Employee Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['GET'])
+def tems_and_condition(request):
+    content = FrontendContent.objects.filter(content_type='tems_and_condition_section').first()
+    if content:
+        return Response(content.content, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['GET'])
+def privacy_policy(request):
+    content = FrontendContent.objects.filter(content_type='privacy_policy_section').first()
+    if content:
+        return Response(content.content, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['GET'])
+def faq(request):
+    content = FrontendContent.objects.filter(content_type='faq_section').first()
+    if content:
+        return Response(content.content, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['POST'])
+def contact_us(request):
+    serializer = Contact_formSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message': 'Your Query Submitted Successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+def menu_details(request, menu_link):
+    menu = get_object_or_404(Menu, menu_link=menu_link)
+    if menu:
+        content = MenuContent.objects.filter(menu=menu).first()
+        if content.image:
+            imageURL = settings.DOMAIN_NAME + content.image.url
+        else:
+            imageURL = None
+        if content.icon:
+            iconURL = settings.DOMAIN_NAME + content.icon.url
+        else:
+            iconURL = None
+        if content.description:
+            # the description data is {'description': 'value'} 
+            description = content.description['description']
+        else:
+            description = None
+        if content.meta_title:
+            meta_title = content.meta_title
+        else:
+            meta_title = None
+        if content:
+            menu_data = {
+                'title': content.title,
+                'meta_title': meta_title,
+                'description': description,
+                'image': imageURL,
+                'icon': iconURL
+            }
+            return Response(menu_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'No Content Found'}, status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response({'error': 'No Menu Found'}, status=status.HTTP_404_NOT_FOUND)
